@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
+import { CartContext } from "../contexts/CartContext";
 
 const FoodList = () => {
   const [foodItems, setFoodItems] = useState([]);
+  const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
     const fetchFoodItems = async () => {
@@ -19,11 +21,12 @@ const FoodList = () => {
 
   return (
     <div>
-      <h1>here should add the full List</h1>
+      <h1>Food List</h1>
       <ul>
         {foodItems.map((item) => (
           <li key={item.id}>
             {item.name} - ${item.price}
+            <button onClick={() => addToCart(item)}>Add to Cart</button>
           </li>
         ))}
       </ul>

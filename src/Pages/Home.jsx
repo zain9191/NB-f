@@ -1,17 +1,19 @@
 import React from "react";
-import homeBackground from "../components/assets/imgs/Home-main.png";
+import homeBackground from "../assets/imgs/Home-main.png";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLocationDot } from "@fortawesome/free-solid-svg-icons"; // Import the icon
+import { faLocationDot } from "@fortawesome/free-solid-svg-icons";
 
 const HomeBackgroundImg = styled.img`
   width: 100%;
   height: auto;
 `;
+
 const HomeMainDiv = styled.div`
   position: relative;
   width: 100%;
 `;
+
 const TitleDiv = styled.div`
   position: absolute;
   top: 50%;
@@ -77,7 +79,6 @@ const ZipCodeInput = () => {
     <Container>
       <Icon>
         <FontAwesomeIcon icon={faLocationDot} />{" "}
-        {/* Correctly reference the icon */}
       </Icon>
       <Input type="text" placeholder="Enter your ZIP code" />
       <HomeFindButton>Find Meals</HomeFindButton>
