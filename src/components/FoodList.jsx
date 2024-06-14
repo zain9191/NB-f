@@ -19,7 +19,7 @@ const FoodList = () => {
 
   return (
     <div>
-      <h1>Food List</h1>
+      <h1>here should add the full List</h1>
       <ul>
         {foodItems.map((item) => (
           <li key={item.id}>

@@ -3,7 +3,7 @@ import FoodList from "../components/FoodList";
 
 const FoodListPage = () => (
   <div>
-    <h1>Food List</h1>
+    <h1>The List</h1>
     <FoodList />
   </div>
 );
