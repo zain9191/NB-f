@@ -8,12 +8,10 @@ const HomeBackgroundImg = styled.img`
   width: 100%;
   height: auto;
 `;
-
 const HomeMainDiv = styled.div`
   position: relative;
   width: 100%;
 `;
-
 const TitleDiv = styled.div`
   position: absolute;
   top: 50%;
@@ -30,7 +28,6 @@ const TitleDiv = styled.div`
   justify-content: center;
   align-items: center;
 `;
-
 const Container = styled.div`
   display: flex;
   align-items: center;
@@ -40,7 +37,6 @@ const Container = styled.div`
   width: fit-content;
   margin-top: 10px;
 `;
-
 const Input = styled.input`
   border: none;
   padding: 10px 15px;
@@ -52,7 +48,6 @@ const Input = styled.input`
     color: #bbb;
   }
 `;
-
 const HomeFindButton = styled.button`
   background-color: #dc143c;
   color: white;
@@ -67,7 +62,6 @@ const HomeFindButton = styled.button`
     background-color: #a00016;
   }
 `;
-
 const Icon = styled.div`
   padding: 10px;
   font-size: 20px;

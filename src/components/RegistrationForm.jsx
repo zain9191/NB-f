@@ -10,17 +10,14 @@ const Form = styled.form`
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 `;
-
 const FormGroup = styled.div`
   margin-bottom: 15px;
 `;
-
 const Label = styled.label`
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
 `;
-
 const Input = styled.input`
   width: 100%;
   padding: 10px;
@@ -29,7 +26,14 @@ const Input = styled.input`
   border-radius: 4px;
   font-size: 16px;
 `;
-
+const Select = styled.select`
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+`;
 const Button = styled.button`
   width: 100%;
   padding: 10px;
@@ -45,11 +49,17 @@ const Button = styled.button`
   }
 `;
 
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:5080",
+});
+
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    userType: "user", // Default to "user"
+    specialty: "", // Add specialty to the form data
   });
 
   const handleChange = (e) => {
@@ -63,10 +73,23 @@ const RegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/register", formData);
-      console.log(response.data);
+      const endpoint =
+        formData.userType === "chef"
+          ? "/api/chefs/register"
+          : "/api/users/register";
+      const response = await api.post(endpoint, formData);
+      console.log("Response data:", response.data);
     } catch (error) {
-      console.error(error);
+      console.error("Error during form submission:", error);
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+      } else if (error.request) {
+        console.error("Error request data:", error.request);
+      } else {
+        console.error("Error message:", error.message);
+      }
     }
   };
 
@@ -102,6 +125,36 @@ const RegistrationForm = () => {
           required
         />
       </FormGroup>
+      <FormGroup>
+        <Label>User Type:</Label>
+        <Select
+          name="userType"
+          value={formData.userType}
+          onChange={handleChange}
+          required
+        >
+          <option value="user">User</option>
+          <option value="chef">Chef</option>
+        </Select>
+      </FormGroup>
+      {formData.userType === "chef" && (
+        <FormGroup>
+          <Label>Specialty:</Label>
+          <Select
+            name="specialty"
+            value={formData.specialty}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Specialty</option>
+            <option value="Italian">Italian</option>
+            <option value="Mexican">Mexican</option>
+            <option value="Indian">Indian</option>
+            <option value="Chinese">Chinese</option>
+            {/* Add more specialties as needed */}
+          </Select>
+        </FormGroup>
+      )}
       <Button type="submit">Register</Button>
     </Form>
   );
