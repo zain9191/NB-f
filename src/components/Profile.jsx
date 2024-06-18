@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import AddressForm from "./AddressForm";
+import api from "../utils/api"; // Ensure the path is correct
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [addresses, setAddresses] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,19 +18,15 @@ const Profile = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:5080/api/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get("/api/profile");
 
         setProfile(response.data);
+        setAddresses(response.data.addresses || []);
       } catch (error) {
         console.error("Error fetching profile:", error);
         if (error.response && error.response.status === 401) {
           navigate("/login");
         }
-        // Handle other potential errors
       } finally {
         setLoading(false);
       }
@@ -36,6 +34,40 @@ const Profile = () => {
 
     fetchProfile();
   }, [navigate]);
+
+  const addAddress = async (address) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.post("/api/address/add", address, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setAddresses(response.data.addresses);
+    } catch (error) {
+      console.error("Error adding address:", error);
+    }
+  };
+
+  const setActiveAddress = async (addressId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.post(
+        "/api/address/set-active",
+        { addressId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setProfile(response.data);
+    } catch (error) {
+      console.error("Error setting active address:", error);
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -51,6 +83,23 @@ const Profile = () => {
       <p>Email: {profile.email}</p>
       <p>Phone: {profile.phone}</p>
       <p>ZipCode: {profile.zipCode}</p>
+
+      <h2>Addresses</h2>
+      <ul>
+        {addresses.map((address) => (
+          <li key={address._id}>
+            {address.addressLine}, {address.city}, {address.state},{" "}
+            {address.zipCode}, {address.country}
+            <button onClick={() => setActiveAddress(address._id)}>
+              {profile.activeAddress &&
+              profile.activeAddress._id === address._id
+                ? "Active"
+                : "Set Active"}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <AddressForm addAddress={addAddress} />
     </div>
   );
 };

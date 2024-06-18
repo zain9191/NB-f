@@ -56,6 +56,85 @@ function About() {
 export default About;
 
 
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/AddressForm.jsx
+import React, { useState } from "react";
+
+const AddressForm = ({ addAddress }) => {
+  const [formData, setFormData] = useState({
+    addressLine: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addAddress(formData);
+    setFormData({
+      addressLine: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h3>Add Address</h3>
+      <input
+        type="text"
+        name="addressLine"
+        placeholder="Address Line"
+        value={formData.addressLine}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="city"
+        placeholder="City"
+        value={formData.city}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="state"
+        placeholder="State"
+        value={formData.state}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="zipCode"
+        placeholder="Zip Code"
+        value={formData.zipCode}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="country"
+        placeholder="Country"
+        value={formData.country}
+        onChange={handleChange}
+        required
+      />
+      <button type="submit">Add Address</button>
+    </form>
+  );
+};
+
+export default AddressForm;
+
+
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Cart.jsx
 import React, { useContext } from "react";
 import { CartContext } from "../contexts/CartContext";
@@ -265,34 +344,41 @@ export default LoginForm;
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import AddressForm from "./AddressForm";
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [addresses, setAddresses] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+        console.log("Fetching profile with token:", token);
+
         if (!token) {
+          console.log("Token not found, navigating to login");
           navigate("/login");
           return;
         }
 
-        const response = await axios.get("http://localhost:5080/api/profile", {
+        const response = await axios.get("/api/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log("Profile data fetched:", response);
         setProfile(response.data);
+        setAddresses(response.data.addresses || []);
       } catch (error) {
         console.error("Error fetching profile:", error);
         if (error.response && error.response.status === 401) {
+          console.log("Unauthorized, navigating to login");
           navigate("/login");
         }
-        // Handle other potential errors
       } finally {
         setLoading(false);
       }
@@ -300,6 +386,46 @@ const Profile = () => {
 
     fetchProfile();
   }, [navigate]);
+
+  const addAddress = async (address) => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Adding address:", address);
+
+      const response = await axios.post("/api/address/add", address, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Address added successfully:", response.data.addresses);
+      setAddresses(response.data.addresses);
+    } catch (error) {
+      console.error("Error adding address:", error);
+    }
+  };
+
+  const setActiveAddress = async (addressId) => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Setting active address with ID:", addressId);
+
+      const response = await axios.post(
+        "/api/address/set-active",
+        { addressId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Active address set successfully:", response.data);
+      setProfile(response.data);
+    } catch (error) {
+      console.error("Error setting active address:", error);
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -313,6 +439,25 @@ const Profile = () => {
     <div>
       <h1>{profile.name}</h1>
       <p>Email: {profile.email}</p>
+      <p>Phone: {profile.phone}</p>
+      <p>ZipCode: {profile.zipCode}</p>
+
+      <h2>Addresses</h2>
+      <ul>
+        {addresses.map((address) => (
+          <li key={address._id}>
+            {address.addressLine}, {address.city}, {address.state},{" "}
+            {address.zipCode}, {address.country}
+            <button onClick={() => setActiveAddress(address._id)}>
+              {profile.activeAddress &&
+              profile.activeAddress._id === address._id
+                ? "Active"
+                : "Set Active"}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <AddressForm addAddress={addAddress} />
     </div>
   );
 };
@@ -382,6 +527,8 @@ const RegistrationForm = () => {
     name: "",
     email: "",
     password: "",
+    phone: "",
+    zipCode: "",
     userType: "user", // Default to "user"
     specialty: "", // Add specialty to the form data
   });
@@ -450,6 +597,26 @@ const RegistrationForm = () => {
           type="password"
           name="password"
           value={formData.password}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <Label>Phone Number:</Label>
+        <Input
+          type="tel"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <Label>Zip Code:</Label>
+        <Input
+          type="text"
+          name="zipCode"
+          value={formData.zipCode}
           onChange={handleChange}
           required
         />
@@ -590,9 +757,183 @@ const CartProvider = ({ children }) => {
 export default CartProvider;
 
 
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/index.css
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  background-color: #f0f2f5;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header Styling */
+header {
+  background-color: #4CAF50; /* Fresh green color */
+  color: white;
+  padding: 10px 0;
+}
+
+header ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+}
+
+header ul li {
+  margin: 0 15px;
+}
+
+header ul li a {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+header ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Main Content Styling */
+main {
+  padding: 20px;
+  min-height: 80vh;
+}
+
+/* Footer Styling */
+footer {
+  background-color: #333; /* Dark gray */
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+}
+
+/* Form Styling */
+form {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form div {
+  margin-bottom: 15px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #FF9800; /* Vibrant orange */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #F57C00; /* Darker orange */
+}
+
+/* Profile Page Styling */
+.profile-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-container h1 {
+  margin-bottom: 20px;
+}
+
+.profile-container p {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+/* Food List Styling */
+.food-list-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.food-list-container h1 {
+  margin-bottom: 20px;
+}
+
+.food-list-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.food-list-container ul li {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.food-list-container ul li:last-child {
+  border-bottom: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header ul {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  header ul li {
+    margin: 10px 0;
+  }
+
+  footer {
+    position: relative;
+    bottom: 0;
+  }
+}
+
+
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/index.js
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import './index.css';
 import App from './App';
 
 // Create a root.
@@ -778,10 +1119,30 @@ export default PrivateRoute;
 
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/utils/api.jsx
+// import axios from "axios";
+
+// const api = axios.create({
+//   baseURL: "http://localhost:5080", // Backend URL
+// });
+
+// api.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem("token");
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default api;
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000", // Backend URL
+  baseURL: "http://localhost:5080", // Make sure this is the correct backend URL
 });
 
 api.interceptors.request.use(
