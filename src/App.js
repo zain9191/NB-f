@@ -5,7 +5,6 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import ProfilePage from './pages/ProfilePage';
-import FoodListPage from './pages/FoodListPage';
 import Login from './pages/Login';
 import PrivateRoute from './utils/PrivateRoute';
 import CartProvider from './contexts/CartContext';
@@ -29,7 +28,6 @@ const App = () => (
                 </PrivateRoute>
               }
             />
-            <Route path="/food-list" element={<FoodListPage />} />
           </Routes>
         </main>
         <Footer />

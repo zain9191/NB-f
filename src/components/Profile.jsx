@@ -12,24 +12,23 @@ const Profile = () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          console.log("No token found, redirecting to login");
           navigate("/login");
           return;
         }
 
-        console.log("Retrieved token:", token); // Debugging line
         const response = await axios.get("http://localhost:5080/api/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
         setProfile(response.data);
       } catch (error) {
         console.error("Error fetching profile:", error);
         if (error.response && error.response.status === 401) {
-          console.log("Unauthorized, redirecting to login");
           navigate("/login");
         }
+        // Handle other potential errors
       } finally {
         setLoading(false);
       }
@@ -50,6 +49,8 @@ const Profile = () => {
     <div>
       <h1>{profile.name}</h1>
       <p>Email: {profile.email}</p>
+      <p>Phone: {profile.phone}</p>
+      <p>ZipCode: {profile.zipCode}</p>
     </div>
   );
 };

@@ -26,35 +26,36 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log("Submitting form data:", formData); // Debugging line
+    // console.log("Submitting form data:", formData); // Debugging line
     try {
       const response = await axios.post(
         "http://localhost:5080/api/users/login",
         formData
       );
 
-      console.log("Login response:", response); // Debugging line
+      // console.log("Login response:", response); // Debugging line
 
       if (response.data && response.data.token) {
         const token = response.data.token;
         localStorage.setItem("token", token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        console.log("Token stored:", token); // Debugging line
+        // console.log("Token stored:", token); // Debugging line
         alert("Login successful!");
         navigate("/profile");
       } else {
         setError("Failed to retrieve token.");
-        console.error("Token not found in response data:", response.data); // Debugging line
+        console.error("Token not found in response data:", response.data);
       }
     } catch (error) {
       setError("Invalid credentials, please try again.");
-      console.error(
-        "Login error:",
-        error.response ? error.response.data : error.message
-      ); // Debugging line
+      if (error.response) {
+        // console.error("Login error response:", error.response.data); // Debugging line
+      } else {
+        // console.error("Login error message:", error.message); // Debugging line
+      }
     } finally {
       setLoading(false);
-      console.log("Loading state set to false"); // Debugging line
+      // console.log("Loading state set to false"); // Debugging line
     }
   };
 

@@ -12,6 +12,7 @@ const Form = styled.form`
 `;
 const FormGroup = styled.div`
   margin-bottom: 15px;
+  padding: 10px 0; /* Add padding for better spacing */
 `;
 const Label = styled.label`
   display: block;
@@ -58,9 +59,12 @@ const RegistrationForm = () => {
     name: "",
     email: "",
     password: "",
+    phone: "",
+    zipCode: "",
     userType: "user", // Default to "user"
     specialty: "", // Add specialty to the form data
   });
+  const [error, setError] = useState(null); // Add state for error handling
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -72,24 +76,28 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Reset error state
     try {
       const endpoint =
         formData.userType === "chef"
           ? "/api/chefs/register"
           : "/api/users/register";
       const response = await api.post(endpoint, formData);
-      console.log("Response data:", response.data);
+
+      console.log("Server response:", response.data);
+
+      if (response.data && response.data.token) {
+        const token = response.data.token;
+        localStorage.setItem("token", token);
+        console.log("Token saved to local storage:", token);
+        alert("Registration successful!");
+      } else {
+        console.error("Token not found in the response:", response.data);
+        setError("Registration failed, please try again.");
+      }
     } catch (error) {
       console.error("Error during form submission:", error);
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-        console.error("Error response status:", error.response.status);
-        console.error("Error response headers:", error.response.headers);
-      } else if (error.request) {
-        console.error("Error request data:", error.request);
-      } else {
-        console.error("Error message:", error.message);
-      }
+      setError("Registration failed, please try again."); // Set error message for user feedback
     }
   };
 
@@ -126,6 +134,26 @@ const RegistrationForm = () => {
         />
       </FormGroup>
       <FormGroup>
+        <Label>Phone Number:</Label>
+        <Input
+          type="tel"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <Label>Zip Code:</Label>
+        <Input
+          type="text"
+          name="zipCode"
+          value={formData.zipCode}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
         <Label>User Type:</Label>
         <Select
           name="userType"
@@ -151,10 +179,10 @@ const RegistrationForm = () => {
             <option value="Mexican">Mexican</option>
             <option value="Indian">Indian</option>
             <option value="Chinese">Chinese</option>
-            {/* Add more specialties as needed */}
           </Select>
         </FormGroup>
       )}
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <Button type="submit">Register</Button>
     </Form>
   );
