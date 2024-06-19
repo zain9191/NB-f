@@ -1,3 +1,4 @@
+// File: /src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
@@ -9,6 +10,8 @@ import Login from './pages/Login';
 import PrivateRoute from './utils/PrivateRoute';
 import CartProvider from './contexts/CartContext';
 import AuthProvider from './contexts/AuthContext';
+import MealForm from './components/MealForm';
+import MealsList from './components/MealsList';
 
 const App = () => (
   <AuthProvider>
@@ -28,6 +31,8 @@ const App = () => (
                 </PrivateRoute>
               }
             />
+            <Route path="/create-meal" element={<PrivateRoute><MealForm /></PrivateRoute>} />
+            <Route path="/meals" element={<MealsList />} />
           </Routes>
         </main>
         <Footer />

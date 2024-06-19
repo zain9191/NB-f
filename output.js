@@ -1,5 +1,6 @@
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/App.js
+// File: /src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
@@ -11,6 +12,8 @@ import Login from './pages/Login';
 import PrivateRoute from './utils/PrivateRoute';
 import CartProvider from './contexts/CartContext';
 import AuthProvider from './contexts/AuthContext';
+import MealForm from './components/MealForm';
+import MealsList from './components/MealsList';
 
 const App = () => (
   <AuthProvider>
@@ -30,6 +33,8 @@ const App = () => (
                 </PrivateRoute>
               }
             />
+            <Route path="/create-meal" element={<PrivateRoute><MealForm /></PrivateRoute>} />
+            <Route path="/meals" element={<MealsList />} />
           </Routes>
         </main>
         <Footer />
@@ -218,6 +223,7 @@ export default Footer;
 
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Header.jsx
+// File: /src/components/Header.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -235,7 +241,10 @@ const Header = () => (
           <Link to="/profile">Profile</Link>
         </li>
         <li>
-          <Link to="/food-list">Food List</Link>
+          <Link to="/meals">Meals</Link>
+        </li>
+        <li>
+          <Link to="/create-meal">Create Meal</Link>
         </li>
       </ul>
     </nav>
@@ -340,11 +349,127 @@ const LoginForm = () => {
 export default LoginForm;
 
 
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/MealForm.jsx
+// File: /components/MealForm.jsx
+import React, { useState, useContext } from "react";
+import axios from "axios";
+import { AuthContext } from "../contexts/AuthContext";
+
+const MealForm = () => {
+  const { user } = useContext(AuthContext);
+  const [mealData, setMealData] = useState({
+    name: "",
+    description: "",
+    price: "",
+  });
+
+  const handleChange = (e) => {
+    setMealData({ ...mealData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:5000/api/meals/create", mealData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert("Meal created successfully");
+    } catch (error) {
+      console.error("Error creating meal", error);
+    }
+  };
+
+  if (!user || user.role !== "chef") {
+    return <p>Access denied. Only chefs can create meals.</p>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Create a Meal</h2>
+      <input
+        type="text"
+        name="name"
+        placeholder="Meal Name"
+        value={mealData.name}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="description"
+        placeholder="Description"
+        value={mealData.description}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="number"
+        name="price"
+        placeholder="Price"
+        value={mealData.price}
+        onChange={handleChange}
+        required
+      />
+      <button type="submit">Create Meal</button>
+    </form>
+  );
+};
+
+export default MealForm;
+
+
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/MealsList.jsx
+// File: /components/MealsList.jsx
+import React, { useEffect, useState, useContext } from "react";
+import axios from "axios";
+import { CartContext } from "../contexts/CartContext";
+
+const MealsList = () => {
+  const [meals, setMeals] = useState([]);
+  const { addToCart } = useContext(CartContext);
+
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/meals");
+        setMeals(response.data);
+      } catch (error) {
+        console.error("Error fetching meals", error);
+      }
+    };
+
+    fetchMeals();
+  }, []);
+
+  return (
+    <div>
+      <h2>Meals List</h2>
+      <ul>
+        {meals.map((meal) => (
+          <li key={meal._id}>
+            <h3>{meal.name}</h3>
+            <p>{meal.description}</p>
+            <p>${meal.price}</p>
+            <button onClick={() => addToCart(meal)}>Add to Cart</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default MealsList;
+
+
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Profile.jsx
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Profile.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AddressForm from "./AddressForm";
+import api from "../utils/api"; // Ensure the path is correct
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -356,27 +481,18 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        console.log("Fetching profile with token:", token);
-
         if (!token) {
-          console.log("Token not found, navigating to login");
           navigate("/login");
           return;
         }
 
-        const response = await axios.get("/api/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get("/api/profile");
 
-        console.log("Profile data fetched:", response);
         setProfile(response.data);
         setAddresses(response.data.addresses || []);
       } catch (error) {
         console.error("Error fetching profile:", error);
         if (error.response && error.response.status === 401) {
-          console.log("Unauthorized, navigating to login");
           navigate("/login");
         }
       } finally {
@@ -390,15 +506,12 @@ const Profile = () => {
   const addAddress = async (address) => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Adding address:", address);
-
-      const response = await axios.post("/api/address/add", address, {
+      const response = await api.post("/api/address/add", address, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("Address added successfully:", response.data.addresses);
       setAddresses(response.data.addresses);
     } catch (error) {
       console.error("Error adding address:", error);
@@ -408,9 +521,7 @@ const Profile = () => {
   const setActiveAddress = async (addressId) => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Setting active address with ID:", addressId);
-
-      const response = await axios.post(
+      const response = await api.post(
         "/api/address/set-active",
         { addressId },
         {
@@ -420,10 +531,24 @@ const Profile = () => {
         }
       );
 
-      console.log("Active address set successfully:", response.data);
       setProfile(response.data);
     } catch (error) {
       console.error("Error setting active address:", error);
+    }
+  };
+
+  const deleteAddress = async (addressId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.delete(`/api/address/delete/${addressId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setAddresses(response.data.addresses);
+    } catch (error) {
+      console.error("Error deleting address:", error);
     }
   };
 
@@ -454,6 +579,7 @@ const Profile = () => {
                 ? "Active"
                 : "Set Active"}
             </button>
+            <button onClick={() => deleteAddress(address._id)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -557,6 +683,7 @@ const RegistrationForm = () => {
       if (response.data && response.data.token) {
         const token = response.data.token;
         localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         console.log("Token saved to local storage:", token);
         alert("Registration successful!");
       } else {
@@ -660,6 +787,7 @@ export default RegistrationForm;
 
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/contexts/AuthContext.jsx
+// File: /contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
@@ -1119,30 +1247,10 @@ export default PrivateRoute;
 
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/utils/api.jsx
-// import axios from "axios";
-
-// const api = axios.create({
-//   baseURL: "http://localhost:5080", // Backend URL
-// });
-
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
-
-// export default api;
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5080", // Make sure this is the correct backend URL
+  baseURL: "http://localhost:5080", // Ensure this matches your backend URL
 });
 
 api.interceptors.request.use(

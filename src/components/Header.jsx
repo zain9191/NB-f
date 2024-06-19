@@ -1,3 +1,4 @@
+// File: /src/components/Header.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -15,7 +16,10 @@ const Header = () => (
           <Link to="/profile">Profile</Link>
         </li>
         <li>
-          <Link to="/food-list">Food List</Link>
+          <Link to="/meals">Meals</Link>
+        </li>
+        <li>
+          <Link to="/create-meal">Create Meal</Link>
         </li>
       </ul>
     </nav>

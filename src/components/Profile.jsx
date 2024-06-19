@@ -1,3 +1,4 @@
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Profile.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddressForm from "./AddressForm";
@@ -69,6 +70,21 @@ const Profile = () => {
     }
   };
 
+  const deleteAddress = async (addressId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.delete(`/api/address/delete/${addressId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setAddresses(response.data.addresses);
+    } catch (error) {
+      console.error("Error deleting address:", error);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -96,6 +112,7 @@ const Profile = () => {
                 ? "Active"
                 : "Set Active"}
             </button>
+            <button onClick={() => deleteAddress(address._id)}>Delete</button>
           </li>
         ))}
       </ul>

@@ -89,6 +89,7 @@ const RegistrationForm = () => {
       if (response.data && response.data.token) {
         const token = response.data.token;
         localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         console.log("Token saved to local storage:", token);
         alert("Registration successful!");
       } else {
