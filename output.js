@@ -243,9 +243,6 @@ const Header = () => (
         <li>
           <Link to="/meals">Meals</Link>
         </li>
-        <li>
-          <Link to="/create-meal">Create Meal</Link>
-        </li>
       </ul>
     </nav>
   </header>
@@ -465,17 +462,29 @@ export default MealsList;
 
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Profile.jsx
-// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/Profile.jsx
+// components/Profile.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddressForm from "./AddressForm";
-import api from "../utils/api"; // Ensure the path is correct
+import api from "../utils/api";
+import ProfilePictureUpload from "./ProfilePictureUpload";
+import styled from "styled-components";
+
+const ProfilPic = styled.img`
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+`;
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [addresses, setAddresses] = useState([]);
+  const [specialty, setSpecialty] = useState("");
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false); // Add state to track image error
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -487,7 +496,7 @@ const Profile = () => {
         }
 
         const response = await api.get("/api/profile");
-
+        console.log("Profile data fetched:", response.data);
         setProfile(response.data);
         setAddresses(response.data.addresses || []);
       } catch (error) {
@@ -502,6 +511,10 @@ const Profile = () => {
 
     fetchProfile();
   }, [navigate]);
+
+  const handleProfilePictureUpload = (profilePictureUrl) => {
+    setProfile({ ...profile, profilePicture: profilePictureUrl });
+  };
 
   const addAddress = async (address) => {
     try {
@@ -552,6 +565,25 @@ const Profile = () => {
     }
   };
 
+  const becomeChef = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.post(
+        "/api/users/become-chef",
+        { specialty },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("You are now a chef!");
+      setProfile({ ...profile, isChef: true });
+    } catch (error) {
+      console.error("Error becoming chef:", error);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -566,6 +598,12 @@ const Profile = () => {
       <p>Email: {profile.email}</p>
       <p>Phone: {profile.phone}</p>
       <p>ZipCode: {profile.zipCode}</p>
+      <ProfilPic
+        src={imageError ? "/uploads/default-pp.png" : profile.profilePicture}
+        alt="Profile"
+        onError={() => setImageError(true)} // Handle error by setting imageError to true
+      />
+      <ProfilePictureUpload onUpload={handleProfilePictureUpload} />
 
       <h2>Addresses</h2>
       <ul>
@@ -584,11 +622,72 @@ const Profile = () => {
         ))}
       </ul>
       <AddressForm addAddress={addAddress} />
+
+      {!profile.isChef && (
+        <div>
+          <h2>Become a Chef</h2>
+          <input
+            type="text"
+            placeholder="Specialty"
+            value={specialty}
+            onChange={(e) => setSpecialty(e.target.value)}
+            required
+          />
+          <button onClick={becomeChef}>Become a Chef</button>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Profile;
+
+
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/ProfilePictureUpload.jsx
+import React, { useState } from "react";
+import axios from "axios";
+import config from "../config"; // Import configuration
+
+const ProfilePictureUpload = ({ onUpload }) => {
+  const [file, setFile] = useState(null);
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("profilePicture", file);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${config.apiBaseUrl}/api/profile/upload-profile-picture`, // Use config for base URL
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      onUpload(response.data.profilePicture);
+      alert("Profile picture uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading profile picture", error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="file" onChange={handleFileChange} required />
+      <button type="submit">Upload</button>
+    </form>
+  );
+};
+
+export default ProfilePictureUpload;
 
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/RegistrationForm.jsx
@@ -786,10 +885,17 @@ const RegistrationForm = () => {
 export default RegistrationForm;
 
 
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/config.js
+const config = {
+    apiBaseUrl: "http://localhost:5080", 
+  };
+  
+  export default config;
+  
+
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/contexts/AuthContext.jsx
-// File: /contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import api from "../utils/api"; // Import API utility
 
 export const AuthContext = createContext();
 
@@ -800,11 +906,8 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       if (localStorage.getItem("token")) {
-        axios.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${localStorage.getItem("token")}`;
         try {
-          const response = await axios.get("/api/profile");
+          const response = await api.get("/api/profile");
           setUser(response.data);
         } catch (error) {
           console.error("Failed to load user", error);
@@ -819,14 +922,8 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post("/api/users/login", {
-        email,
-        password,
-      });
+      const response = await api.post("/api/users/login", { email, password });
       localStorage.setItem("token", response.data.token);
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${response.data.token}`;
       setUser(response.data.user);
     } catch (error) {
       console.error("Login failed", error);
@@ -1248,9 +1345,10 @@ export default PrivateRoute;
 
 // File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/utils/api.jsx
 import axios from "axios";
+import config from "../config"; // Import configuration
 
 const api = axios.create({
-  baseURL: "http://localhost:5080", // Ensure this matches your backend URL
+  baseURL: config.apiBaseUrl,
 });
 
 api.interceptors.request.use(
