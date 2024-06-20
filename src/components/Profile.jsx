@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
 import AddressForm from "./AddressForm";
+import ProfilePictureUpload from "./ProfilePictureUpload"; // Ensure this import is correct
 import api from "../utils/api";
-import ProfilePictureUpload from "./ProfilePictureUpload";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   max-width: 800px;
@@ -60,27 +62,6 @@ const Button = styled.button`
   }
 `;
 
-const AddressList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-`;
-
-const AddressItem = styled.li`
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 10px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const AddressButtons = styled.div`
-  display: flex;
-  gap: 10px;
-`;
-
 const FormContainer = styled.div`
   margin-top: 20px;
 `;
@@ -102,41 +83,58 @@ const Dropdown = styled.select`
 `;
 
 const Profile = () => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useContext(AuthContext);
+  const [profile, setProfile] = useState(user || null);
+  const [loading, setLoading] = useState(!user);
   const [addresses, setAddresses] = useState([]);
   const [specialty, setSpecialty] = useState("");
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
-  const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found, redirecting to login.");
+        navigate("/login");
+        return;
+      }
 
-        const response = await api.get("/api/profile");
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setProfile(response.data);
         setAddresses(response.data.addresses || []);
       } catch (error) {
         if (error.response && error.response.status === 401) {
+          console.error("Unauthorized, redirecting to login.");
           navigate("/login");
+        } else {
+          console.error("Error fetching profile:", error);
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [navigate]);
+    if (!user) {
+      fetchProfile();
+    }
+  }, [navigate, user]);
 
   const handleProfilePictureUpload = (profilePictureUrl) => {
-    setProfile({ ...profile, profilePicture: profilePictureUrl });
+    setProfile((prevProfile) => ({
+      ...prevProfile,
+      profilePicture: profilePictureUrl,
+    }));
   };
 
   const addAddress = async (address) => {
@@ -148,8 +146,14 @@ const Profile = () => {
         },
       });
 
-      setAddresses(response.data.addresses);
-      setShowAddressForm(false); // Hide form after adding address
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        addresses: response.data.data.addresses,
+        activeAddress: response.data.data.activeAddress,
+      }));
+      setAddresses(response.data.data.addresses);
+      setShowAddressForm(false);
+      setShowAddressDropdown(true);
     } catch (error) {
       console.error("Error adding address:", error);
     }
@@ -168,24 +172,16 @@ const Profile = () => {
         }
       );
 
-      setProfile(response.data);
+      // Assuming the API response returns the updated profile data
+      const updatedProfile = response.data.data;
+
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        activeAddress: updatedProfile.activeAddress,
+        addresses: updatedProfile.addresses,
+      }));
     } catch (error) {
       console.error("Error setting active address:", error);
-    }
-  };
-
-  const deleteAddress = async (addressId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await api.delete(`/api/address/delete/${addressId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setAddresses(response.data.addresses);
-    } catch (error) {
-      console.error("Error deleting address:", error);
     }
   };
 
@@ -202,7 +198,10 @@ const Profile = () => {
         }
       );
       alert("You are now a chef!");
-      setProfile({ ...profile, isChef: true });
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        isChef: true,
+      }));
     } catch (error) {
       console.error("Error becoming chef:", error);
     }
@@ -216,13 +215,26 @@ const Profile = () => {
     return <div>Profile data could not be loaded.</div>;
   }
 
-  const profilePictureUrl = profile.profilePicture.startsWith("/")
-    ? `${window.location.protocol}//${window.location.hostname}:5080${profile.profilePicture}`
-    : profile.profilePicture;
+  const profilePictureUrl =
+    profile.profilePicture && profile.profilePicture.startsWith("/")
+      ? `${window.location.protocol}//${window.location.hostname}:5080${profile.profilePicture}`
+      : profile.profilePicture || "/uploads/default-pp.png";
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    if (value === "add-new-address") {
+      setShowAddressForm(true);
+      setShowAddressDropdown(false);
+    } else {
+      setActiveAddress(value);
+      setShowAddressForm(false);
+      setShowAddressDropdown(false);
+    }
+  };
 
   return (
     <Container>
-      <Header>Profile</Header>
+      <Header>{profile.name}'s Profile</Header>
       <ProfileSection>
         <ProfilPic
           src={imageError ? "/uploads/default-pp.png" : profilePictureUrl}
@@ -232,29 +244,28 @@ const Profile = () => {
         <ProfilePictureUpload onUpload={handleProfilePictureUpload} />
       </ProfileSection>
       <ProfileDetails>
-        <Info>Name: {profile.name}</Info>
         <Info>Email: {profile.email}</Info>
         <Info>Phone: {profile.phone}</Info>
         <Info>ZipCode: {profile.zipCode}</Info>
 
         <h2>Current Address</h2>
-        {profile.activeAddress && (
+        {profile.activeAddress ? (
           <div>
             {profile.activeAddress.addressLine}, {profile.activeAddress.city},{" "}
             {profile.activeAddress.state}, {profile.activeAddress.zipCode},{" "}
             {profile.activeAddress.country}
-            <Button
-              onClick={() => setShowAddressDropdown(!showAddressDropdown)}
-            >
-              Change Current Address
-            </Button>
           </div>
+        ) : (
+          <p>No active address selected</p>
         )}
+        <Button onClick={() => setShowAddressDropdown(!showAddressDropdown)}>
+          Change Current Address
+        </Button>
 
-        {showAddressDropdown && (
+        {showAddressDropdown && addresses.length > 0 && (
           <>
             <Dropdown
-              onChange={(e) => setActiveAddress(e.target.value)}
+              onChange={handleAddressChange}
               value={profile.activeAddress ? profile.activeAddress._id : ""}
             >
               <option value="" disabled>
@@ -267,34 +278,8 @@ const Profile = () => {
               ))}
               <option value="add-new-address">Add New Address</option>
             </Dropdown>
-
-            <AddressList>
-              {addresses.map((address) => (
-                <AddressItem key={address._id}>
-                  <div>
-                    {address.addressLine}, {address.city}, {address.state},{" "}
-                    {address.zipCode}, {address.country}
-                  </div>
-                  <AddressButtons>
-                    <Button onClick={() => setActiveAddress(address._id)}>
-                      {profile.activeAddress &&
-                      profile.activeAddress._id === address._id
-                        ? "Active"
-                        : "Set Active"}
-                    </Button>
-                    <Button onClick={() => deleteAddress(address._id)}>
-                      Delete
-                    </Button>
-                  </AddressButtons>
-                </AddressItem>
-              ))}
-            </AddressList>
           </>
         )}
-
-        <Button onClick={() => setShowAddressForm(!showAddressForm)}>
-          {showAddressForm ? "Hide Address Form" : "Add New Address"}
-        </Button>
 
         {showAddressForm && (
           <FormContainer>
@@ -314,6 +299,14 @@ const Profile = () => {
             />
             <Button onClick={becomeChef}>Become a Chef</Button>
           </FormContainer>
+        )}
+
+        {profile.isChef && (
+          <div>
+            <Link to="/create-meal">
+              <Button>Add Meal</Button>
+            </Link>
+          </div>
         )}
       </ProfileDetails>
     </Container>

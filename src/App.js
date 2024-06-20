@@ -1,4 +1,3 @@
-// File: /src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
@@ -9,9 +8,10 @@ import ProfilePage from './pages/ProfilePage';
 import Login from './pages/Login';
 import PrivateRoute from './utils/PrivateRoute';
 import CartProvider from './contexts/CartContext';
-import AuthProvider from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext'; // Corrected import
 import MealForm from './components/MealForm';
 import MealsList from './components/MealsList';
+import NotFound from './pages/NotFound'; // Import the NotFound component
 
 const App = () => (
   <AuthProvider>
@@ -33,6 +33,7 @@ const App = () => (
             />
             <Route path="/create-meal" element={<PrivateRoute><MealForm /></PrivateRoute>} />
             <Route path="/meals" element={<MealsList />} />
+            <Route path="*" element={<NotFound />} /> {/* Catch-all route for 404 */}
           </Routes>
         </main>
         <Footer />

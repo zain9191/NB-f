@@ -1,4 +1,3 @@
-// File: /components/MealForm.jsx
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../contexts/AuthContext";
@@ -9,21 +8,44 @@ const MealForm = () => {
     name: "",
     description: "",
     price: "",
+    ingredients: "",
+    images: [],
   });
 
   const handleChange = (e) => {
-    setMealData({ ...mealData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setMealData({ ...mealData, [name]: value });
+  };
+
+  const handleImageChange = (e) => {
+    setMealData({ ...mealData, images: e.target.files });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formData = new FormData();
+    for (let key in mealData) {
+      if (key === "images") {
+        for (let i = 0; i < mealData.images.length; i++) {
+          formData.append("images", mealData.images[i]);
+        }
+      } else {
+        formData.append(key, mealData[key]);
+      }
+    }
+
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/meals/create", mealData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/meals/create`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       alert("Meal created successfully");
     } catch (error) {
       console.error("Error creating meal", error);
@@ -59,6 +81,21 @@ const MealForm = () => {
         placeholder="Price"
         value={mealData.price}
         onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="ingredients"
+        placeholder="Ingredients (comma-separated)"
+        value={mealData.ingredients}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="file"
+        name="images"
+        multiple
+        onChange={handleImageChange}
         required
       />
       <button type="submit">Create Meal</button>

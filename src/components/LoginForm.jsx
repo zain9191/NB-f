@@ -1,61 +1,32 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+// components/LoginForm.js
+
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
-  // Check for token on component mount
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-  }, []);
-
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // console.log("Submitting form data:", formData); // Debugging line
     try {
-      const response = await axios.post(
-        "http://localhost:5080/api/users/login",
-        formData
-      );
-
-      // console.log("Login response:", response); // Debugging line
-
-      if (response.data && response.data.token) {
-        const token = response.data.token;
-        localStorage.setItem("token", token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        // console.log("Token stored:", token); // Debugging line
-        alert("Login successful!");
-        navigate("/profile");
-      } else {
-        setError("Failed to retrieve token.");
-        console.error("Token not found in response data:", response.data);
-      }
+      await login(formData.email, formData.password);
+      alert("Login successful!");
+      navigate("/profile");
     } catch (error) {
       setError("Invalid credentials, please try again.");
-      if (error.response) {
-        // console.error("Login error response:", error.response.data); // Debugging line
-      } else {
-        // console.error("Login error message:", error.message); // Debugging line
-      }
     } finally {
       setLoading(false);
-      // console.log("Loading state set to false"); // Debugging line
     }
   };
 

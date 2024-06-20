@@ -84,13 +84,10 @@ const RegistrationForm = () => {
           : "/api/users/register";
       const response = await api.post(endpoint, formData);
 
-      console.log("Server response:", response.data);
-
       if (response.data && response.data.token) {
         const token = response.data.token;
         localStorage.setItem("token", token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        console.log("Token saved to local storage:", token);
         alert("Registration successful!");
       } else {
         console.error("Token not found in the response:", response.data);

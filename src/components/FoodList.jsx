@@ -9,7 +9,9 @@ const FoodList = () => {
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
-        const response = await axios.get("/api/food");
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/food`
+        );
         setFoodItems(response.data);
       } catch (error) {
         console.error(error);
