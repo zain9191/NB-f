@@ -21,7 +21,7 @@ const LoginForm = () => {
     setLoading(true);
     try {
       await login(formData.email, formData.password);
-      alert("Login successful!");
+      // alert("Login successful!");
       navigate("/profile");
     } catch (error) {
       setError("Invalid credentials, please try again.");

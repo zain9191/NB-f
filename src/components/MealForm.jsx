@@ -52,8 +52,8 @@ const MealForm = () => {
     }
   };
 
-  if (!user || user.role !== "chef") {
-    return <p>Access denied. Only chefs can create meals.</p>;
+  if (!user) {
+    return <p>Please log in to create a meal.</p>;
   }
 
   return (
