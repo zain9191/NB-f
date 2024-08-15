@@ -27,14 +27,6 @@ const Input = styled.input`
   border-radius: 4px;
   font-size: 16px;
 `;
-const Select = styled.select`
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-`;
 const Button = styled.button`
   width: 100%;
   padding: 10px;
@@ -61,8 +53,6 @@ const RegistrationForm = () => {
     password: "",
     phone: "",
     zipCode: "",
-    userType: "user", // Default to "user"
-    specialty: "", // Add specialty to the form data
   });
   const [error, setError] = useState(null); // Add state for error handling
 
@@ -78,10 +68,7 @@ const RegistrationForm = () => {
     e.preventDefault();
     setError(null); // Reset error state
     try {
-      const endpoint =
-        formData.userType === "chef"
-          ? "/api/chefs/register"
-          : "/api/users/register";
+      const endpoint = "/api/users/register";
       const response = await api.post(endpoint, formData);
 
       if (response.data && response.data.token) {
@@ -151,35 +138,6 @@ const RegistrationForm = () => {
           required
         />
       </FormGroup>
-      <FormGroup>
-        <Label>User Type:</Label>
-        <Select
-          name="userType"
-          value={formData.userType}
-          onChange={handleChange}
-          required
-        >
-          <option value="user">User</option>
-          <option value="chef">Chef</option>
-        </Select>
-      </FormGroup>
-      {formData.userType === "chef" && (
-        <FormGroup>
-          <Label>Specialty:</Label>
-          <Select
-            name="specialty"
-            value={formData.specialty}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Specialty</option>
-            <option value="Italian">Italian</option>
-            <option value="Mexican">Mexican</option>
-            <option value="Indian">Indian</option>
-            <option value="Chinese">Chinese</option>
-          </Select>
-        </FormGroup>
-      )}
       {error && <p style={{ color: "red" }}>{error}</p>}
       <Button type="submit">Register</Button>
     </Form>

@@ -55,9 +55,9 @@ const Header = () => {
     navigate("/login");
   };
 
-  console.log("User:", user);
-  console.log("Logout function:", logout);
-  console.log("Token from localStorage:", localStorage.getItem("token"));
+  // console.log("User:", user);
+  // console.log("Logout function:", logout);
+  // console.log("Token from localStorage:", localStorage.getItem("token"));
 
   return (
     <header>

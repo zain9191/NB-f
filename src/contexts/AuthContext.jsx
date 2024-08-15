@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
-import config from "../config"; // Import the configuration
+import config from "../config";
 
 const AuthContext = createContext();
 
@@ -11,15 +11,14 @@ const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
       if (token) {
-        console.log("Token found in localStorage:", token);
+        // console.log("Token found in localStorage:", token);
         try {
           const res = await axios.get(`${config.apiBaseUrl}/api/auth`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (res.data && res.data._id) {
-            // Adjusting to the actual response structure
             setUser(res.data);
-            console.log("Fetched user:", res.data);
+            // console.log("Fetched user:", res.data);
           } else {
             console.log("No user data found in response:", res.data);
             setUser(null);
@@ -38,7 +37,7 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log("Attempting login with email:", email);
+      // console.log("Attempting login with email:", email);
       const res = await axios.post(`${config.apiBaseUrl}/api/auth/login`, {
         email,
         password,
@@ -57,14 +56,14 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    console.log("Logging out user:", user);
+    // console.log("Logging out user:", user);
     localStorage.removeItem("token");
     setUser(null);
     console.log("User logged out successfully.");
   };
 
   useEffect(() => {
-    console.log("User state changed:", user);
+    // console.log("User state changed:", user);
   }, [user]);
 
   return (

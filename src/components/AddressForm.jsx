@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const AddressForm = ({ addAddress }) => {
+const AddressForm = ({ addAddress, editingAddress }) => {
   const [formData, setFormData] = useState({
     addressLine: "",
     city: "",
@@ -8,6 +8,12 @@ const AddressForm = ({ addAddress }) => {
     zipCode: "",
     country: "",
   });
+
+  useEffect(() => {
+    if (editingAddress) {
+      setFormData(editingAddress);
+    }
+  }, [editingAddress]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,7 +33,7 @@ const AddressForm = ({ addAddress }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h3>Add Address</h3>
+      <h3>{editingAddress ? "Edit Address" : "Add Address"}</h3>
       <input
         type="text"
         name="addressLine"
@@ -68,7 +74,9 @@ const AddressForm = ({ addAddress }) => {
         onChange={handleChange}
         required
       />
-      <button type="submit">Add Address</button>
+      <button type="submit">
+        {editingAddress ? "Save Changes" : "Add Address"}
+      </button>
     </form>
   );
 };
