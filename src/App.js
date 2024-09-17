@@ -12,7 +12,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import MealsList from './components/MealsList';
 import NotFound from './pages/NotFound';
 import CartPage from './pages/CartPage'; 
-import MealForm from "./components/MealForm";
+import MealForm from "./components/MealForm/MealForm";
 
 
 const App = () => (

@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
-import config from "../config";
+import api from "../utils/api";
 
 const AuthContext = createContext();
 
@@ -11,11 +10,8 @@ const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
       if (token) {
-        // console.log("Token found in localStorage:", token);
         try {
-          const res = await axios.get(`${config.apiBaseUrl}/api/auth`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await api.get("/api/auth");
           if (res.data && res.data._id) {
             setUser(res.data);
             // console.log("Fetched user:", res.data);
@@ -38,7 +34,7 @@ const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       // console.log("Attempting login with email:", email);
-      const res = await axios.post(`${config.apiBaseUrl}/api/auth/login`, {
+      const res = await api.post("/api/auth/login", {
         email,
         password,
       });
@@ -61,10 +57,6 @@ const AuthProvider = ({ children }) => {
     setUser(null);
     console.log("User logged out successfully.");
   };
-
-  useEffect(() => {
-    // console.log("User state changed:", user);
-  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

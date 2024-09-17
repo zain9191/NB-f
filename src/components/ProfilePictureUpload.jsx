@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
-import config from "../config"; // Import configuration
+import api from "../utils/api";
 
 const ProfilePictureUpload = ({ onUpload }) => {
   const [file, setFile] = useState(null);
@@ -15,18 +14,16 @@ const ProfilePictureUpload = ({ onUpload }) => {
     formData.append("profilePicture", file);
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${config.apiBaseUrl}/api/profile/upload-profile-picture`, // Use config for base URL
+      const response = await api.post(
+        `/api/profile/upload-profile-picture`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
-      onUpload(response.data.profilePicture);
+      onUpload(response.data.profile_picture);
       alert("Profile picture uploaded successfully");
     } catch (error) {
       console.error("Error uploading profile picture", error);

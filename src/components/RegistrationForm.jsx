@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 import styled from "styled-components";
+import api from "../utils/api";
 
 const Form = styled.form`
   max-width: 600px;
@@ -12,7 +12,7 @@ const Form = styled.form`
 `;
 const FormGroup = styled.div`
   margin-bottom: 15px;
-  padding: 10px 0; /* Add padding for better spacing */
+  padding: 10px 0;
 `;
 const Label = styled.label`
   display: block;
@@ -42,19 +42,16 @@ const Button = styled.button`
   }
 `;
 
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:5080",
-});
-
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
+    username: "",
     email: "",
     password: "",
-    phone: "",
+    phone_number: "",
     zipCode: "",
   });
-  const [error, setError] = useState(null); // Add state for error handling
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,15 +63,13 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Reset error state
+    setError(null);
     try {
-      const endpoint = "/api/users/register";
-      const response = await api.post(endpoint, formData);
+      const response = await api.post("/api/auth/register", formData);
 
       if (response.data && response.data.token) {
         const token = response.data.token;
         localStorage.setItem("token", token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         alert("Registration successful!");
       } else {
         console.error("Token not found in the response:", response.data);
@@ -82,18 +77,30 @@ const RegistrationForm = () => {
       }
     } catch (error) {
       console.error("Error during form submission:", error);
-      setError("Registration failed, please try again."); // Set error message for user feedback
+      setError("Registration failed, please try again.");
     }
   };
 
   return (
     <Form onSubmit={handleSubmit}>
       <FormGroup>
-        <Label>Name:</Label>
+        <Label>Full Name:</Label>
         <Input
           type="text"
-          name="name"
-          value={formData.name}
+          name="full_name"
+          placeholder="Full Name"
+          value={formData.full_name}
+          onChange={handleChange}
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <Label>Username:</Label>
+        <Input
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={formData.username}
           onChange={handleChange}
           required
         />
@@ -103,6 +110,7 @@ const RegistrationForm = () => {
         <Input
           type="email"
           name="email"
+          placeholder="Email"
           value={formData.email}
           onChange={handleChange}
           required
@@ -113,6 +121,7 @@ const RegistrationForm = () => {
         <Input
           type="password"
           name="password"
+          placeholder="Password"
           value={formData.password}
           onChange={handleChange}
           required
@@ -122,8 +131,9 @@ const RegistrationForm = () => {
         <Label>Phone Number:</Label>
         <Input
           type="tel"
-          name="phone"
-          value={formData.phone}
+          name="phone_number"
+          placeholder="Phone Number"
+          value={formData.phone_number}
           onChange={handleChange}
           required
         />
@@ -133,6 +143,7 @@ const RegistrationForm = () => {
         <Input
           type="text"
           name="zipCode"
+          placeholder="Zip Code"
           value={formData.zipCode}
           onChange={handleChange}
           required

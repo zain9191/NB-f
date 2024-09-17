@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 
 const AddressForm = ({ addAddress, editingAddress }) => {
   const [formData, setFormData] = useState({
-    addressLine: "",
+    street: "",
     city: "",
     state: "",
-    zipCode: "",
+    postalCode: "",
     country: "",
   });
 
@@ -23,10 +23,10 @@ const AddressForm = ({ addAddress, editingAddress }) => {
     e.preventDefault();
     addAddress(formData);
     setFormData({
-      addressLine: "",
+      street: "",
       city: "",
       state: "",
-      zipCode: "",
+      postalCode: "",
       country: "",
     });
   };
@@ -36,9 +36,9 @@ const AddressForm = ({ addAddress, editingAddress }) => {
       <h3>{editingAddress ? "Edit Address" : "Add Address"}</h3>
       <input
         type="text"
-        name="addressLine"
-        placeholder="Address Line"
-        value={formData.addressLine}
+        name="street"
+        placeholder="Street"
+        value={formData.street}
         onChange={handleChange}
         required
       />
@@ -60,9 +60,9 @@ const AddressForm = ({ addAddress, editingAddress }) => {
       />
       <input
         type="text"
-        name="zipCode"
-        placeholder="Zip Code"
-        value={formData.zipCode}
+        name="postalCode"
+        placeholder="Postal Code"
+        value={formData.postalCode}
         onChange={handleChange}
         required
       />
@@ -80,5 +80,4 @@ const AddressForm = ({ addAddress, editingAddress }) => {
     </form>
   );
 };
-
 export default AddressForm;

@@ -1,4 +1,3 @@
-// components/MealsList.jsx
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { CartContext } from "../contexts/CartContext";
@@ -28,9 +27,47 @@ const MealsList = () => {
           <li key={meal._id}>
             <h3>{meal.name}</h3>
             <p>{meal.description}</p>
-            <p>${meal.price}</p>
-            <p>{meal.ingredients.join(", ")}</p>
-            {meal.images.map((img, index) => (
+            <p>Category: {meal.category || "N/A"}</p>
+            <p>Cuisine: {meal.cuisine || "N/A"}</p>
+            <p>Portion Size: {meal.portionSize || "N/A"}</p>
+            <p>Price: ${meal.price}</p>
+            <p>
+              Ingredients:{" "}
+              {(meal.ingredients && meal.ingredients.join(", ")) || "N/A"}
+            </p>
+            <p>Calories: {meal.nutritionalInfo?.calories || "N/A"}</p>
+            <p>Protein: {meal.nutritionalInfo?.protein || "N/A"}g</p>
+            <p>Fat: {meal.nutritionalInfo?.fat || "N/A"}g</p>
+            <p>Carbs: {meal.nutritionalInfo?.carbs || "N/A"}g</p>
+            <p>
+              Dietary Restrictions:{" "}
+              {(meal.dietaryRestrictions &&
+                meal.dietaryRestrictions.join(", ")) ||
+                "N/A"}
+            </p>
+            <p>Pickup/Delivery: {meal.pickupDeliveryOptions || "N/A"}</p>
+            <p>
+              Location: {meal.location?.address}, {meal.location?.city || "N/A"}
+            </p>
+            <p>Availability: {meal.availabilityStatus || "N/A"}</p>
+            <p>
+              Preparation Date:{" "}
+              {meal.preparationDate
+                ? new Date(meal.preparationDate).toLocaleDateString()
+                : "N/A"}
+            </p>
+            <p>Packaging: {meal.packagingInformation || "N/A"}</p>
+            <p>Health & Safety: {meal.healthSafetyCompliance || "N/A"}</p>
+            <p>
+              Contact: {meal.contactInformation?.email || "N/A"},{" "}
+              {meal.contactInformation?.phone || "N/A"}
+            </p>
+            <p>
+              Payment Options:{" "}
+              {(meal.paymentOptions && meal.paymentOptions.join(", ")) || "N/A"}
+            </p>
+            <p>Tags: {(meal.tags && meal.tags.join(", ")) || "N/A"}</p>
+            {meal.images?.map((img, index) => (
               <img
                 key={index}
                 src={`http://localhost:5080/${img}`}

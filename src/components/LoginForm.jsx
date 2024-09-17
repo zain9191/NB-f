@@ -13,7 +13,9 @@ const LoginForm = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
+    if (error) {
+      setError(""); // Clear error when user starts typing
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -21,9 +23,9 @@ const LoginForm = () => {
     setLoading(true);
     try {
       await login(formData.email, formData.password);
-      // alert("Login successful!");
       navigate("/profile");
-    } catch (error) {
+    } catch (err) {
+      console.error("Login error:", err);
       setError("Invalid credentials, please try again.");
     } finally {
       setLoading(false);
