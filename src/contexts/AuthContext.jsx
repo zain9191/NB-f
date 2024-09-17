@@ -33,7 +33,6 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // console.log("Attempting login with email:", email);
       const res = await api.post("/api/auth/login", {
         email,
         password,
@@ -41,7 +40,6 @@ const AuthProvider = ({ children }) => {
       if (res.data && res.data.token) {
         localStorage.setItem("token", res.data.token);
         setUser(res.data.user);
-        console.log("Login successful. User data:", res.data.user);
       } else {
         console.log("Login response missing token or user data:", res.data);
       }

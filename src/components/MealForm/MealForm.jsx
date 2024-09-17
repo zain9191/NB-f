@@ -1,3 +1,5 @@
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/MealForm/MealForm.jsx
+
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -12,26 +14,39 @@ const MealForm = () => {
     category: "",
     cuisine: "",
     portionSize: "",
-    calories: "",
-    protein: "",
-    fat: "",
-    carbs: "",
+    nutritionalInfo: {
+      calories: "",
+      protein: "",
+      fat: "",
+      carbs: "",
+      vitamins: "",
+    },
     dietaryRestrictions: "",
     expirationDate: "",
     pickupDeliveryOptions: "",
-    location: "",
+    location: {
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      coordinates: {
+        lat: "",
+        lng: "",
+      },
+    },
     preparationDate: "",
     packagingInformation: "",
     healthSafetyCompliance: "",
-    contactEmail: "",
-    contactPhone: "",
+    contactInformation: {
+      email: "",
+      phone: "",
+    },
     paymentOptions: "",
     preparationMethod: "",
     cookingInstructions: "",
     additionalNotes: "",
     tags: "",
     sellerRating: "",
-    mealId: "",
     quantityAvailable: "",
     discountsPromotions: "",
     images: [],
@@ -39,23 +54,55 @@ const MealForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setMealData({ ...mealData, [name]: value });
+    setMealData((prevData) => {
+      const keys = name.split(".");
+      const lastKey = keys.pop();
+      const nestedData = { ...prevData };
+
+      let temp = nestedData;
+      for (let key of keys) {
+        if (!temp[key]) temp[key] = {};
+        temp = temp[key];
+      }
+      temp[lastKey] = value;
+      return nestedData;
+    });
   };
 
   const handleImageChange = (e) => {
     setMealData({ ...mealData, images: e.target.files });
   };
 
+  // Adjusted flattenObject function
+  const flattenObject = (obj, parentKey = "", result = {}) => {
+    for (let key in obj) {
+      const propName = parentKey ? `${parentKey}[${key}]` : key;
+      if (
+        typeof obj[key] === "object" &&
+        obj[key] !== null &&
+        !(obj[key] instanceof FileList)
+      ) {
+        flattenObject(obj[key], propName, result);
+      } else {
+        result[propName] = obj[key];
+      }
+    }
+    return result;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    for (let key in mealData) {
+
+    const flatData = flattenObject(mealData);
+
+    for (let key in flatData) {
       if (key === "images") {
-        for (let i = 0; i < mealData.images.length; i++) {
-          formData.append("images", mealData.images[i]);
+        for (let i = 0; i < flatData.images.length; i++) {
+          formData.append("images", flatData.images[i]);
         }
       } else {
-        formData.append(key, mealData[key]);
+        formData.append(key, flatData[key]);
       }
     }
 
@@ -73,7 +120,13 @@ const MealForm = () => {
       );
       alert("Meal created successfully");
     } catch (error) {
-      console.error("Error creating meal", error);
+      console.error(
+        "Error creating meal",
+        error.response?.data || error.message
+      );
+      alert(
+        "Error creating meal: " + (error.response?.data?.error || error.message)
+      );
     }
   };
 
@@ -116,8 +169,6 @@ const MealForm = () => {
         onChange={handleChange}
         required
       />
-
-      {/* Additional Fields */}
       <input
         type="text"
         name="category"
@@ -142,42 +193,53 @@ const MealForm = () => {
         onChange={handleChange}
         required
       />
+
+      {/* Nutritional Information */}
+      <h3>Nutritional Information</h3>
       <input
         type="number"
-        name="calories"
+        name="nutritionalInfo.calories"
         placeholder="Calories"
-        value={mealData.calories}
+        value={mealData.nutritionalInfo.calories}
         onChange={handleChange}
         required
       />
       <input
         type="number"
-        name="protein"
+        name="nutritionalInfo.protein"
         placeholder="Protein (g)"
-        value={mealData.protein}
+        value={mealData.nutritionalInfo.protein}
         onChange={handleChange}
         required
       />
       <input
         type="number"
-        name="fat"
+        name="nutritionalInfo.fat"
         placeholder="Fat (g)"
-        value={mealData.fat}
+        value={mealData.nutritionalInfo.fat}
         onChange={handleChange}
         required
       />
       <input
         type="number"
-        name="carbs"
+        name="nutritionalInfo.carbs"
         placeholder="Carbs (g)"
-        value={mealData.carbs}
+        value={mealData.nutritionalInfo.carbs}
         onChange={handleChange}
         required
       />
       <input
         type="text"
+        name="nutritionalInfo.vitamins"
+        placeholder="Vitamins (comma-separated)"
+        value={mealData.nutritionalInfo.vitamins}
+        onChange={handleChange}
+      />
+
+      <input
+        type="text"
         name="dietaryRestrictions"
-        placeholder="Dietary Restrictions"
+        placeholder="Dietary Restrictions (comma-separated)"
         value={mealData.dietaryRestrictions}
         onChange={handleChange}
       />
@@ -197,14 +259,60 @@ const MealForm = () => {
         onChange={handleChange}
         required
       />
+
+      {/* Location */}
+      <h3>Location</h3>
       <input
         type="text"
-        name="location"
-        placeholder="Location"
-        value={mealData.location}
+        name="location.address"
+        placeholder="Address"
+        value={mealData.location.address}
         onChange={handleChange}
         required
       />
+      <input
+        type="text"
+        name="location.city"
+        placeholder="City"
+        value={mealData.location.city}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="location.state"
+        placeholder="State"
+        value={mealData.location.state}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="text"
+        name="location.zipCode"
+        placeholder="Zip Code"
+        value={mealData.location.zipCode}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="number"
+        step="any"
+        name="location.coordinates.lat"
+        placeholder="Latitude"
+        value={mealData.location.coordinates.lat}
+        onChange={handleChange}
+        required
+      />
+      <input
+        type="number"
+        step="any"
+        name="location.coordinates.lng"
+        placeholder="Longitude"
+        value={mealData.location.coordinates.lng}
+        onChange={handleChange}
+        required
+      />
+
       <input
         type="date"
         name="preparationDate"
@@ -227,26 +335,30 @@ const MealForm = () => {
         value={mealData.healthSafetyCompliance}
         onChange={handleChange}
       />
+
+      {/* Contact Information */}
+      <h3>Contact Information</h3>
       <input
         type="email"
-        name="contactEmail"
+        name="contactInformation.email"
         placeholder="Contact Email"
-        value={mealData.contactEmail}
+        value={mealData.contactInformation.email}
         onChange={handleChange}
         required
       />
       <input
         type="tel"
-        name="contactPhone"
+        name="contactInformation.phone"
         placeholder="Contact Phone"
-        value={mealData.contactPhone}
+        value={mealData.contactInformation.phone}
         onChange={handleChange}
         required
       />
+
       <input
         type="text"
         name="paymentOptions"
-        placeholder="Payment Options"
+        placeholder="Payment Options (comma-separated)"
         value={mealData.paymentOptions}
         onChange={handleChange}
         required
@@ -281,19 +393,13 @@ const MealForm = () => {
         required
       />
       <input
-        type="text"
+        type="number"
         name="sellerRating"
-        placeholder="Seller Rating"
+        placeholder="Seller Rating (1-5)"
         value={mealData.sellerRating}
         onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="mealId"
-        placeholder="Meal ID"
-        value={mealData.mealId}
-        onChange={handleChange}
-        required
+        min="1"
+        max="5"
       />
       <input
         type="number"

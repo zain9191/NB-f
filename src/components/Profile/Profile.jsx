@@ -19,7 +19,7 @@ const Profile = () => {
 
   // Centralized fetch logic with token validation
   const fetchWithAuth = async (method, url, data = null, options = {}) => {
-    console.log(`Fetching with auth: ${method} ${url}`, options); // Debug
+    // console.log(`Fetching with auth: ${method} ${url}`, options); // Debug
     const token = localStorage.getItem("token");
     if (!token) {
       console.warn("No token found, navigating to login."); // Debug
@@ -35,7 +35,7 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${token}`, ...options.headers },
         ...options,
       });
-      console.log("Response received from fetchWithAuth:", response); // Debug
+      // console.log("Response received from fetchWithAuth:", response); // Debug
       return response;
     } catch (error) {
       console.error("Error in fetchWithAuth:", error); // Debug
@@ -49,11 +49,11 @@ const Profile = () => {
 
   // Fetch the user's profile
   const fetchProfile = async () => {
-    console.log("Fetching profile..."); // Debug
+    // console.log("Fetching profile..."); // Debug
     setLoading(true);
     try {
       const response = await fetchWithAuth("get", "/api/auth");
-      console.log("Profile data received:", response.data); // Debug
+      // console.log("Profile data received:", response.data); // Debug
       setProfile(response.data);
 
       // Fetch addresses after profile is loaded
@@ -62,25 +62,25 @@ const Profile = () => {
       handleError(error);
     } finally {
       setLoading(false);
-      console.log("Profile fetching completed, loading state:", loading); // Debug
+      // console.log("Profile fetching completed, loading state:", loading); // Debug
     }
   };
 
   // Fetch the user's addresses
   const fetchAddresses = async () => {
-    console.log("Fetching addresses for user"); // Debug
+    // console.log("Fetching addresses for user"); // Debug
     try {
       const response = await fetchWithAuth("get", "/api/address");
       if (response && response.data) {
-        console.log("Addresses data received:", response.data); // Debug
+        // console.log("Addresses data received:", response.data); // Debug
         setAddresses(response.data);
       } else {
-        console.warn("No addresses found for user"); // Debug
+        // console.warn("No addresses found for user"); // Debug
         setAddresses([]);
         setAddressError("No addresses found.");
       }
     } catch (error) {
-      console.error("Error fetching addresses:", error); // Debug
+      // console.error("Error fetching addresses:", error); // Debug
       setAddressError("Failed to load addresses.");
     }
   };
@@ -88,7 +88,7 @@ const Profile = () => {
   // Monitor addresses state update
   useEffect(() => {
     if (addresses.length > 0) {
-      console.log("Addresses state after setting:", addresses); // Debug
+      // console.log("Addresses state after setting:", addresses); // Debug
     }
   }, [addresses]);
 
@@ -113,29 +113,29 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    console.log("Component mounted, fetching profile..."); // Debug
+    // console.log("Component mounted, fetching profile..."); // Debug
     fetchProfile();
   }, []);
 
   // Handle profile picture upload
   const handleProfilePictureUpload = (profilePictureUrl) => {
-    console.log("Profile picture uploaded:", profilePictureUrl); // Debug
+    // console.log("Profile picture uploaded:", profilePictureUrl); // Debug
     setProfile({ ...profile, profile_picture: profilePictureUrl });
   };
 
   // Add or update an address
   const addOrUpdateAddress = async (address) => {
-    console.log("Attempting to add/update address:", address); // Debug
+    // console.log("Attempting to add/update address:", address); // Debug
     try {
       if (editingAddress) {
-        console.log("Updating address:", editingAddress._id); // Debug
+        // console.log("Updating address:", editingAddress._id); // Debug
         await fetchWithAuth(
           "put",
           `/api/address/update/${editingAddress._id}`,
           address
         );
       } else {
-        console.log("Adding new address:", address); // Debug
+        // console.log("Adding new address:", address); // Debug
         await fetchWithAuth("post", "/api/address/add", address);
       }
 
@@ -152,7 +152,7 @@ const Profile = () => {
 
   // Set active address
   const setActiveAddress = async (addressId) => {
-    console.log("Setting active address:", addressId);
+    // console.log("Setting active address:", addressId);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -168,7 +168,7 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("Active address set successfully:", response.data);
+      // console.log("Active address set successfully:", response.data);
 
       // Fetch updated profile to reflect the new active address
       await fetchProfile();
@@ -180,7 +180,7 @@ const Profile = () => {
 
   // Delete an address
   const deleteAddress = async (addressId) => {
-    console.log("Deleting address:", addressId); // Debug
+    // console.log("Deleting address:", addressId); // Debug
     try {
       await fetchWithAuth("delete", `/api/address/delete/${addressId}`);
 
@@ -194,19 +194,19 @@ const Profile = () => {
 
   // Modify an address
   const modifyAddress = (addressId) => {
-    console.log("Modifying address:", addressId); // Debug
+    // console.log("Modifying address:", addressId); // Debug
     const addressToEdit = addresses.find(
       (address) => address._id === addressId
     );
 
-    console.log("Address to edit:", addressToEdit); // Debug
+    // console.log("Address to edit:", addressToEdit); // Debug
     setEditingAddress(addressToEdit);
     setShowAddressForm(true);
   };
 
   // Loading state
   if (loading) {
-    console.log("Loading..."); // Debug
+    // console.log("Loading..."); // Debug
     return <div>Loading...</div>;
   }
 
@@ -218,7 +218,7 @@ const Profile = () => {
 
   // No profile found
   if (!profile) {
-    console.warn("Profile not found."); // Debug
+    // console.warn("Profile not found."); // Debug
     return <div>Profile data could not be loaded.</div>;
   }
 
@@ -259,25 +259,35 @@ const Profile = () => {
           <h2>All Addresses</h2>
           <ul className="address-list">
             {Array.isArray(addresses) && addresses.length > 0 ? (
-              addresses.map((address) => (
-                <li key={address._id} className="address-item">
-                  <span>
-                    {address.street}, {address.city}, {address.state},{" "}
-                    {address.postalCode}, {address.country}
-                  </span>
-                  <div className="address-actions">
-                    <button onClick={() => modifyAddress(address._id)}>
-                      Edit
-                    </button>
-                    <button onClick={() => deleteAddress(address._id)}>
-                      Delete
-                    </button>
-                    <button onClick={() => setActiveAddress(address._id)}>
-                      Set as Active
-                    </button>
-                  </div>
-                </li>
-              ))
+              addresses.map((address) => {
+                const isActive =
+                  profile.activeAddress &&
+                  address._id === profile.activeAddress._id;
+
+                return (
+                  <li key={address._id} className="address-item">
+                    <span>
+                      {address.street}, {address.city}, {address.state},{" "}
+                      {address.postalCode}, {address.country}
+                    </span>
+                    <div className="address-actions">
+                      <button onClick={() => modifyAddress(address._id)}>
+                        Edit
+                      </button>
+                      <button onClick={() => deleteAddress(address._id)}>
+                        Delete
+                      </button>
+                      {isActive ? (
+                        <span>Active</span>
+                      ) : (
+                        <button onClick={() => setActiveAddress(address._id)}>
+                          Set as Active
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })
             ) : (
               <p>No addresses found.</p>
             )}

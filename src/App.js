@@ -1,3 +1,4 @@
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header/Header';
@@ -12,8 +13,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import MealsList from './components/MealsList';
 import NotFound from './pages/NotFound';
 import CartPage from './pages/CartPage'; 
-import MealForm from "./components/MealForm/MealForm";
-
+import MealForm from './components/MealForm/MealForm';
+import MealDetailPage from './pages/MealDetailPage/MealDetailPage'; // Import the MealDetailPage component
 
 const App = () => (
   <AuthProvider>
@@ -33,9 +34,16 @@ const App = () => (
                 </PrivateRoute>
               }
             />
-            <Route path="/add-meal" element={<PrivateRoute><MealForm /></PrivateRoute>} />
-
+            <Route
+              path="/add-meal"
+              element={
+                <PrivateRoute>
+                  <MealForm />
+                </PrivateRoute>
+              }
+            />
             <Route path="/meals" element={<MealsList />} />
+            <Route path="/meals/:id" element={<MealDetailPage />} /> {/* New Route */}
             <Route path="/cart" element={<CartPage />} /> 
             <Route path="*" element={<NotFound />} />
           </Routes>
