@@ -3,6 +3,8 @@ import homeBackground from "../assets/imgs/Home-main.png";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons";
+import MealsList from "../components/MealsList";
+import { useState } from "react";
 
 const HomeBackgroundImg = styled.img`
   width: 100%;
@@ -68,29 +70,53 @@ const Icon = styled.div`
   color: #bbb;
 `;
 
-const ZipCodeInput = () => {
+const ZipCodeInput = ({ onSearch }) => {
+  const [zipCode, setZipCode] = useState("");
+
+  const handleInputChange = (e) => {
+    setZipCode(e.target.value);
+  };
+
+  const handleSearch = () => {
+    onSearch(zipCode);
+  };
+
   return (
     <Container>
       <Icon>
         <FontAwesomeIcon icon={faLocationDot} />{" "}
       </Icon>
-      <Input type="text" placeholder="Enter your ZIP code" />
-      <HomeFindButton>Find Meals</HomeFindButton>
+      <Input
+        type="text"
+        placeholder="Enter your ZIP code"
+        value={zipCode}
+        onChange={handleInputChange}
+      />
+      <HomeFindButton onClick={handleSearch}>Find Meals</HomeFindButton>
     </Container>
   );
 };
+const Home = () => {
+  const [zipCode, setZipCode] = useState("");
 
-const Home = () => (
-  <HomeMainDiv>
-    <div>
-      <HomeBackgroundImg src={homeBackground}></HomeBackgroundImg>
-    </div>
-    <TitleDiv>
-      <h1>Gourmet dishes created by talented local chefs</h1>
-      <p>Discover nutritious, premium meals in your neighborhood.</p>
-      <ZipCodeInput />
-    </TitleDiv>
-  </HomeMainDiv>
-);
+  const handleSearch = (zip) => {
+    setZipCode(zip);
+  };
+
+  return (
+    <HomeMainDiv>
+      <div>
+        <HomeBackgroundImg src={homeBackground}></HomeBackgroundImg>
+      </div>
+      <TitleDiv>
+        <h1>Gourmet dishes created by talented local chefs</h1>
+        <p>Discover nutritious, premium meals in your neighborhood.</p>
+        <ZipCodeInput onSearch={handleSearch} />
+      </TitleDiv>
+      {/* Add MealsList component */}
+      <MealsList zipCode={zipCode} />
+    </HomeMainDiv>
+  );
+};
 
 export default Home;

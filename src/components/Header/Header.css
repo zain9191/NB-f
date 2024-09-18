@@ -51,3 +51,36 @@
     height: 30px;
     width: 30px;
   }
+  /* Existing styles... */
+
+/* Search Form */
+.header--search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header--search-form input,
+.header--search-form select {
+  padding: 5px;
+  font-size: 16px;
+}
+
+.header--search-form button {
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.header--search-form button:hover {
+  background-color: #45a049;
+}
+
+/* Right Section of the Header */
+.header--right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}

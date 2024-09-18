@@ -1,58 +1,99 @@
 /* Base meal card styling */
 .meal-card {
-  border: 1px solid #ddd;
-  border-radius: 12px; /* Slightly rounder corners for a softer look */
-  padding: 15px;
-  text-align: center;
-  width: 220px; /* Slightly wider for better layout */
-  margin: 15px; /* Add a bit more spacing between cards */
-  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Add smooth scaling effect on hover */
+  border: none; /* Remove border for a cleaner look */
+  border-radius: 12px; /* Rounded corners */
+  padding: 0; /* Remove padding */
+  text-align: left; /* Align text to left for a cleaner look */
+  width: 250px; /* Adjust width for better layout */
+  margin: 15px;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
   overflow: hidden;
-  background-color: #f9f9f9; /* Add light background for contrast */
+  background-color: #fff; /* Pure white background */
+  position: relative; /* For positioning child elements like the badge */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer shadow for modern look */
 }
 
 .meal-card:hover {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Softer shadow */
-  transform: scale(1.03); /* Slight zoom effect on hover */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+  transform: translateY(-3px); /* Slight hover lift effect */
+}
+
+/* Top badge (optional) */
+.badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: #f04e4e; /* Red color for the "Top Shef" badge */
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1;
 }
 
 /* Image slider styling */
 .meal-card-slider {
   width: 100%;
-  height: 180px; /* Slightly taller for better image visibility */
+  height: 180px; /* Adjust height for proper aspect ratio */
   position: relative;
-  overflow: hidden; /* Prevent content overflow */
+  overflow: hidden;
+  border-radius: 12px 12px 0 0; /* Top corners rounded */
 }
 
 .meal-card-image {
   width: 100%;
-  height: 100%; /* Ensure image takes full slider space */
-  object-fit: cover;
-  border-radius: 8px;
-  transition: transform 0.3s ease; /* Smooth zoom on hover */
+  height: 180px; /* Fixed height for consistent layout */
+  object-fit: cover; /* Ensure image covers the space properly */
+  transition: transform 0.3s ease;
 }
 
 .meal-card:hover .meal-card-image {
-  transform: scale(1.05); /* Image zooms slightly on hover */
-}
-
-/* Grid for meal cards */
-.meals-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px; /* Space between cards */
+  transform: scale(1.05); /* Slight zoom effect on hover */
 }
 
 /* Text styling inside the card */
 .meal-card h3 {
-  margin: 12px 0;
-  font-size: 18px; /* Slightly larger heading for emphasis */
-  color: #333; /* Darker color for better readability */
+  margin: 10px 0 6px 15px; /* Adjust margin for better spacing */
+  font-size: 16px; /* Adjusted font size */
+  color: #333; /* Darker text color for readability */
+  font-weight: bold; /* Bold title */
 }
 
 .meal-card p {
-  margin: 5px 0;
-  font-size: 14px; /* Slightly smaller for better spacing */
-  color: #777; /* Lighter text for less emphasis */
+  margin: 4px 0 0 15px; /* Adjust margin for consistency */
+  font-size: 14px; /* Slightly smaller font */
+  color: #777; /* Gray color for less emphasis */
+}
+
+.meal-card .rating {
+  margin-left: 15px; /* Align the rating with the text */
+  font-size: 14px;
+  color: #f4c150; /* Yellow color for the stars */
+  margin-bottom: 8px;
+}
+
+/* Add-to-cart button */
+.meal-card button {
+  background-color: #f04e4e; /* Red background color */
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px; /* Rounded button */
+  font-size: 14px;
+  margin: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.meal-card button:hover {
+  background-color: #d94343; /* Darker red on hover */
+}
+
+/* Overall card layout */
+.meals-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px; /* Spacing between the cards */
 }

@@ -26,10 +26,10 @@ const MealCard = ({
   const carouselSettings = {
     dots: true,
     infinite: true,
-    speed: 500,
+    speed: 800,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true, // Show next and previous arrows
+    // arrows: true, // Show next and previous arrows
     autoplay: true, // Enable autoplay
     autoplaySpeed: 3000, // Autoplay speed in milliseconds
   };
