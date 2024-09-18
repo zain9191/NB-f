@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
 
@@ -7,10 +7,13 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import "./MealDetailPage.css";
+import { CartContext } from "../../contexts/CartContext";
 
 const MealDetailPage = () => {
   const { id } = useParams();
   const [meal, setMeal] = useState(null);
+  const { addToCart } = useContext(CartContext);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const fetchMeal = async () => {
@@ -28,6 +31,14 @@ const MealDetailPage = () => {
   if (!meal) {
     return <div>Loading...</div>;
   }
+  const handleQuantityChange = (e) => {
+    setQuantity(parseInt(e.target.value));
+  };
+  //  add a meal to cart
+  const handleAddToCart = () => {
+    addToCart(meal, quantity);
+    alert(`${meal.name} has been added to your cart.`);
+  };
 
   const sliderSettings = {
     dots: true,
@@ -148,7 +159,9 @@ const MealDetailPage = () => {
               <strong>Quantity Available:</strong> {meal.quantityAvailable}
             </p>
           </div>
-          <button className="add-to-cart-button">Add to Cart</button>
+          <button className="add-to-cart-button" onClick={handleAddToCart}>
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>

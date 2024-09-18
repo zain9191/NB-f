@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import AddressForm from "../AddressForm";
 import api from "../../utils/api";
 import ProfilePictureUpload from "../ProfilePictureUpload";
+import MealCard from "../MealCard/MealCard";
+
 import "./Profile.css";
 
 const Profile = () => {
@@ -14,6 +16,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [editingAddress, setEditingAddress] = useState(null);
   const [addressError, setAddressError] = useState(null);
+  const [userMeals, setUserMeals] = useState([]);
 
   const navigate = useNavigate();
 
@@ -111,10 +114,20 @@ const Profile = () => {
       setError("An unexpected error occurred. Please try again later.");
     }
   };
+  // Fetch user's meals
+  const fetchUserMeals = async () => {
+    try {
+      const response = await api.get("/api/meals/user");
+      setUserMeals(response.data);
+    } catch (error) {
+      console.error("Error fetching user's meals:", error);
+    }
+  };
 
   useEffect(() => {
     // console.log("Component mounted, fetching profile..."); // Debug
     fetchProfile();
+    fetchUserMeals();
   }, []);
 
   // Handle profile picture upload
@@ -312,6 +325,23 @@ const Profile = () => {
               editingAddress={editingAddress}
             />
           </div>
+        )}
+      </div>
+
+      {/* Your Meals Section */}
+      <h2>Your Meals</h2>
+      <div className="meals-grid">
+        {userMeals.length > 0 ? (
+          userMeals.map((meal) => (
+            <MealCard
+              key={meal._id}
+              meal={meal}
+              showEditButton={true}
+              onEdit={() => navigate(`/edit-meal/${meal._id}`)}
+            />
+          ))
+        ) : (
+          <p>No meals available.</p>
         )}
       </div>
     </div>

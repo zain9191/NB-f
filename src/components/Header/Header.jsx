@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import "./Header.css";
 import smallCart from "../../assets/imgs/food-cart.png";
+import { CartContext } from "../../contexts/CartContext";
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { cart } = useContext(CartContext); // Get cart from context
 
   const handleLogout = () => {
     logout();
@@ -58,8 +60,11 @@ const Header = () => {
             </>
           )}
         </ul>
+
         <Link to="/cart">
           <img src={smallCart} className="smallCart" alt="Cart" />
+          {cart.length > 0 && <span>({cart.length})</span>}{" "}
+          {/* Show cart item count */}
         </Link>
       </nav>
       {/* // In Header or somewhere appropriate */}

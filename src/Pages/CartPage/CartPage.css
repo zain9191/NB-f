@@ -1,0 +1,93 @@
+.cart-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .cart-item button {
+    background-color: #dc143c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .cart-item button:hover {
+    background-color: #a00016;
+  }
+  
+  .total-price {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .checkout-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+  
+  .checkout-button:hover {
+    background-color: #45a049;
+  }
+  
+
+  .cart-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .cart-items {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .cart-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .cart-item .meal-card {
+    flex: 1;
+  }
+  
+  .cart-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 20px;
+  }
+  
+  .cart-item-actions label {
+    display: flex;
+    align-items: center;
+  }
+  
+  .cart-item-actions input {
+    width: 50px;
+    margin-left: 10px;
+  }
+  
+  .cart-item-actions button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #dc143c;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .cart-item-actions button:hover {
+    background-color: #a00016;
+  }
+  

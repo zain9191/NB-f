@@ -1,55 +1,64 @@
-// File: src/components/MealForm/MealForm.jsx
-import React, { useState, useContext } from "react";
+// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/components/EditMealForm.jsx
+import React, { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { AuthContext } from "../../contexts/AuthContext";
+import { AuthContext } from "../contexts/AuthContext";
 
-const MealForm = () => {
+const EditMealForm = () => {
   const { user } = useContext(AuthContext);
-  const [mealData, setMealData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    ingredients: "",
-    category: "",
-    cuisine: "",
-    portionSize: "",
-    nutritionalInfo: {
-      calories: "",
-      protein: "",
-      fat: "",
-      carbs: "",
-      vitamins: "",
-    },
-    dietaryRestrictions: "",
-    expirationDate: "",
-    pickupDeliveryOptions: "",
-    location: {
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      coordinates: {
-        lat: "",
-        lng: "",
-      },
-    },
-    preparationDate: "",
-    packagingInformation: "",
-    healthSafetyCompliance: "",
-    contactInformation: {
-      email: "",
-      phone: "",
-    },
-    paymentOptions: "",
-    preparationMethod: "",
-    cookingInstructions: "",
-    additionalNotes: "",
-    tags: "",
-    sellerRating: "",
-    quantityAvailable: "",
-    discountsPromotions: "",
-    images: [],
-  });
+  const { id } = useParams(); // Get the meal ID from URL parameters
+  const navigate = useNavigate();
+  const [mealData, setMealData] = useState(null); // Initialize mealData as null
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+
+  useEffect(() => {
+    const fetchMeal = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/meals/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Check if the logged-in user is the creator of the meal
+        if (response.data.createdBy._id.toString() !== user._id.toString()) {
+          alert("You are not authorized to edit this meal.");
+          navigate("/profile");
+          return;
+        }
+
+        // Convert array fields to comma-separated strings
+        const fetchedMeal = response.data;
+        const processedMeal = {
+          ...fetchedMeal,
+          ingredients: fetchedMeal.ingredients.join(", "),
+          tags: fetchedMeal.tags.join(", "),
+          dietaryRestrictions: fetchedMeal.dietaryRestrictions.join(", "),
+          paymentOptions: fetchedMeal.paymentOptions.join(", "),
+          nutritionalInfo: {
+            ...fetchedMeal.nutritionalInfo,
+            vitamins: fetchedMeal.nutritionalInfo.vitamins.join(", "),
+          },
+        };
+
+        setMealData(processedMeal);
+      } catch (error) {
+        console.error("Error fetching meal:", error);
+        setError("Error fetching meal data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchMeal();
+    }
+  }, [id, user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -92,14 +101,34 @@ const MealForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-
-    const flatData = flattenObject(mealData);
+    const mealDataToSend = {
+      ...mealData,
+      ingredients: mealData.ingredients.split(",").map((item) => item.trim()),
+      tags: mealData.tags.split(",").map((item) => item.trim()),
+      dietaryRestrictions: mealData.dietaryRestrictions
+        .split(",")
+        .map((item) => item.trim()),
+      paymentOptions: mealData.paymentOptions
+        .split(",")
+        .map((item) => item.trim()),
+      nutritionalInfo: {
+        ...mealData.nutritionalInfo,
+        vitamins: mealData.nutritionalInfo.vitamins
+          .split(",")
+          .map((item) => item.trim()),
+      },
+    };
+    const flatData = flattenObject(mealDataToSend);
 
     for (let key in flatData) {
-      if (key === "images") {
+      if (key === "images" && flatData.images instanceof FileList) {
         for (let i = 0; i < flatData.images.length; i++) {
           formData.append("images", flatData.images[i]);
         }
+      } else if (Array.isArray(flatData[key])) {
+        flatData[key].forEach((value) => {
+          formData.append(`${key}[]`, value);
+        });
       } else {
         formData.append(key, flatData[key]);
       }
@@ -107,8 +136,8 @@ const MealForm = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/meals/create`,
+      await axios.put(
+        `${process.env.REACT_APP_API_BASE_URL}/api/meals/update/${id}`,
         formData,
         {
           headers: {
@@ -117,26 +146,33 @@ const MealForm = () => {
           },
         }
       );
-      alert("Meal created successfully");
+      alert("Meal updated successfully");
+      navigate("/profile");
     } catch (error) {
-      console.error(
-        "Error creating meal",
-        error.response?.data || error.message
-      );
-      alert(
-        "Error creating meal: " + (error.response?.data?.error || error.message)
-      );
+      console.error("Error updating meal:", error);
+      alert("Error updating meal");
     }
   };
 
   if (!user) {
-    return <p>Please log in to create a meal.</p>;
+    return <p>Please log in to edit a meal.</p>;
+  }
+
+  if (loading) {
+    return <p>Loading meal data...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (!mealData) {
+    return <p>Meal data not found.</p>;
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Create a Meal</h2>
-
+      <h2>Edit Meal</h2>
       <input
         type="text"
         name="name"
@@ -145,14 +181,13 @@ const MealForm = () => {
         onChange={handleChange}
         required
       />
-      <input
-        type="text"
+      <textarea
         name="description"
         placeholder="Description"
         value={mealData.description}
         onChange={handleChange}
         required
-      />
+      ></textarea>
       <input
         type="number"
         name="price"
@@ -165,7 +200,7 @@ const MealForm = () => {
         type="text"
         name="ingredients"
         placeholder="Ingredients (comma-separated)"
-        value={mealData.ingredients}
+        value={mealData.ingredients} // Removed .join(", ")
         onChange={handleChange}
         required
       />
@@ -232,7 +267,7 @@ const MealForm = () => {
         type="text"
         name="nutritionalInfo.vitamins"
         placeholder="Vitamins (comma-separated)"
-        value={mealData.nutritionalInfo.vitamins}
+        value={mealData.nutritionalInfo.vitamins} // Removed .join(", ")
         onChange={handleChange}
       />
 
@@ -240,14 +275,14 @@ const MealForm = () => {
         type="text"
         name="dietaryRestrictions"
         placeholder="Dietary Restrictions (comma-separated)"
-        value={mealData.dietaryRestrictions}
+        value={mealData.dietaryRestrictions} // Removed .join(", ")
         onChange={handleChange}
       />
       <input
         type="date"
         name="expirationDate"
         placeholder="Expiration Date"
-        value={mealData.expirationDate}
+        value={mealData.expirationDate.substring(0, 10)}
         onChange={handleChange}
         required
       />
@@ -317,7 +352,7 @@ const MealForm = () => {
         type="date"
         name="preparationDate"
         placeholder="Preparation Date"
-        value={mealData.preparationDate}
+        value={mealData.preparationDate.substring(0, 10)}
         onChange={handleChange}
         required
       />
@@ -359,7 +394,7 @@ const MealForm = () => {
         type="text"
         name="paymentOptions"
         placeholder="Payment Options (comma-separated)"
-        value={mealData.paymentOptions}
+        value={mealData.paymentOptions} // Removed .join(", ")
         onChange={handleChange}
         required
       />
@@ -388,7 +423,7 @@ const MealForm = () => {
         type="text"
         name="tags"
         placeholder="Tags (comma-separated)"
-        value={mealData.tags}
+        value={mealData.tags} // Removed .join(", ")
         onChange={handleChange}
         required
       />
@@ -417,16 +452,10 @@ const MealForm = () => {
         onChange={handleChange}
       />
 
-      <input
-        type="file"
-        name="images"
-        multiple
-        onChange={handleImageChange}
-        required
-      />
-      <button type="submit">Create Meal</button>
+      <input type="file" name="images" multiple onChange={handleImageChange} />
+      <button type="submit">Update Meal</button>
     </form>
   );
 };
 
-export default MealForm;
+export default EditMealForm;

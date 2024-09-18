@@ -1,4 +1,4 @@
-// File: /Users/zainfrayha/Desktop/Code/mummys-food-front/src/App.js
+// File: src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header/Header';
@@ -12,9 +12,10 @@ import CartProvider from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import MealsList from './components/MealsList';
 import NotFound from './pages/NotFound';
-import CartPage from './pages/CartPage'; 
+import CartPage from './pages/CartPage/CartPage';
 import MealForm from './components/MealForm/MealForm';
-import MealDetailPage from './pages/MealDetailPage/MealDetailPage'; // Import the MealDetailPage component
+import MealDetailPage from './pages/MealDetailPage/MealDetailPage';
+import EditMealForm from './components/EditMealForm';
 
 const App = () => (
   <AuthProvider>
@@ -43,8 +44,16 @@ const App = () => (
               }
             />
             <Route path="/meals" element={<MealsList />} />
-            <Route path="/meals/:id" element={<MealDetailPage />} /> {/* New Route */}
-            <Route path="/cart" element={<CartPage />} /> 
+            <Route path="/meals/:id" element={<MealDetailPage />} />
+            <Route
+              path="/edit-meal/:id"
+              element={
+                <PrivateRoute>
+                  <EditMealForm />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/cart" element={<CartPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

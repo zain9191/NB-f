@@ -15,7 +15,7 @@ const ProfilePictureUpload = ({ onUpload }) => {
 
     try {
       const response = await api.post(
-        `/api/profile/upload-profile-picture`,
+        "/api/profile/upload-profile-picture",
         formData,
         {
           headers: {
