@@ -16,6 +16,7 @@ import CartPage from './pages/CartPage/CartPage';
 import MealForm from './components/MealForm/MealForm';
 import MealDetailPage from './pages/MealDetailPage/MealDetailPage';
 import EditMealForm from './components/EditMealForm';
+import SettingsPage from './pages/SettingsPage/SettingsPage'; 
 
 const App = () => (
   <AuthProvider>
@@ -54,6 +55,14 @@ const App = () => (
               }
             />
             <Route path="/cart" element={<CartPage />} />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <SettingsPage />
+                </PrivateRoute>
+              }
+            /> {/* Added the Settings route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

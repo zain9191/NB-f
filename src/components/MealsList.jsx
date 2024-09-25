@@ -37,6 +37,23 @@ const MealsList = ({ zipCode }) => {
 
     fetchMeals();
   }, [location.search, zipCode]);
+  useEffect(() => {
+    const fetchMeals = async () => {
+      try {
+        // Use the query parameters from the URL
+        const params = new URLSearchParams(location.search);
+
+        const response = await api.get("/api/meals", {
+          params,
+        });
+        setMeals(response.data);
+      } catch (error) {
+        console.error("Error fetching meals", error);
+      }
+    };
+
+    fetchMeals();
+  }, [location.search]);
 
   return (
     <div>

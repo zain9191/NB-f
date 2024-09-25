@@ -1,3 +1,4 @@
+// src/contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import api from "../utils/api";
 
@@ -6,6 +7,7 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  // In src/contexts/AuthContext.jsx
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -14,14 +16,17 @@ const AuthProvider = ({ children }) => {
           const res = await api.get("/api/auth");
           if (res.data && res.data._id) {
             setUser(res.data);
-            // console.log("Fetched user:", res.data);
           } else {
             console.log("No user data found in response:", res.data);
             setUser(null);
           }
         } catch (err) {
           console.error("Error fetching user:", err);
-          setUser(null);
+          if (err.response && err.response.status === 401) {
+            // Token is invalid or expired
+            localStorage.removeItem("token");
+            setUser(null);
+          }
         }
       } else {
         console.log("No token found in localStorage.");
@@ -50,14 +55,13 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // console.log("Logging out user:", user);
     localStorage.removeItem("token");
     setUser(null);
     console.log("User logged out successfully.");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );
