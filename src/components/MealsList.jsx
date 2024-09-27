@@ -1,72 +1,55 @@
-// File: src/components/MealsList.jsx
-
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import api from "../utils/api";
 import MealCard from "./MealCard/MealCard";
-import { useLocation } from "react-router-dom";
 
-const MealsList = ({ zipCode }) => {
+const MealsList = ({ searchParams }) => {
   const [meals, setMeals] = useState([]);
-  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchMeals = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        // Parse query parameters from URL
-        const params = new URLSearchParams(location.search);
-
-        // If zipCode prop is provided, set it in the params
-        if (zipCode) {
-          params.set("zipCode", zipCode);
-        }
-
-        // Construct params object for the API request
-        const searchParams = {};
-        for (const [key, value] of params.entries()) {
-          searchParams[key] = value;
-        }
-
+        // Ensure searchParams are passed correctly
         const response = await api.get("/api/meals", {
-          params: searchParams,
+          params: searchParams, // Already correctly passing searchParams
         });
         setMeals(response.data);
-      } catch (error) {
-        console.error("Error fetching meals", error);
+      } catch (err) {
+        console.error("Error fetching meals", err);
+        setError("Failed to fetch meals. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchMeals();
-  }, [location.search, zipCode]);
-  useEffect(() => {
-    const fetchMeals = async () => {
-      try {
-        // Use the query parameters from the URL
-        const params = new URLSearchParams(location.search);
-
-        const response = await api.get("/api/meals", {
-          params,
-        });
-        setMeals(response.data);
-      } catch (error) {
-        console.error("Error fetching meals", error);
-      }
-    };
-
-    fetchMeals();
-  }, [location.search]);
+  }, [searchParams]);
 
   return (
     <div>
       <h2>Meals List</h2>
-      <div className="meals-grid">
-        {meals.length > 0 ? (
-          meals.map((meal) => <MealCard key={meal._id} meal={meal} />)
-        ) : (
-          <p>No meals found.</p>
-        )}
-      </div>
+      {loading && <p>Loading meals...</p>}
+      {error && <p className="error">{error}</p>}
+      {!loading && !error && (
+        <div className="meals-grid">
+          {meals.length > 0 ? (
+            meals.map((meal) => <MealCard key={meal._id} meal={meal} />)
+          ) : (
+            <p>No meals found.</p>
+          )}
+        </div>
+      )}
     </div>
   );
+};
+
+// Define PropTypes for better type checking
+MealsList.propTypes = {
+  searchParams: PropTypes.object,
 };
 
 export default MealsList;

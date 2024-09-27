@@ -29,7 +29,7 @@ const MealCard = ({
     speed: 800,
     slidesToShow: 1,
     slidesToScroll: 1,
-    // arrows: true, // Show next and previous arrows
+    // arrows: true, // Uncomment if you want to show next and previous arrows
     autoplay: true, // Enable autoplay
     autoplaySpeed: 3000, // Autoplay speed in milliseconds
   };
@@ -56,20 +56,40 @@ const MealCard = ({
         />
       )}
       <h3>{meal.name}</h3>
-      <p>Price: ${meal.price}</p>
-      <p>{meal.description.substring(0, 100)}...</p>
+      <p>Price: ${meal.price.toFixed(2)}</p>
+      <p>
+        {meal.description.length > 100
+          ? `${meal.description.substring(0, 100)}...`
+          : meal.description}
+      </p>
+      <p className="meal-location">
+        Location:{" "}
+        {meal.address ? `${meal.address.city}, ${meal.address.state}` : "N/A"}
+      </p>
     </>
   );
 
   return (
     <div className="meal-card">
       {clickable ? (
-        <Link to={`/meals/${meal._id}`}>{content}</Link>
+        <Link to={`/meals/${meal._id}`} className="meal-card-link">
+          {content}
+        </Link>
       ) : (
         <div>{content}</div>
       )}
-      {showAddToCart && <button onClick={handleAddToCart}>Add to Cart</button>}
-      {showEditButton && <button onClick={onEdit}>Edit Meal</button>}
+      <div className="meal-card-actions">
+        {showAddToCart && (
+          <button onClick={handleAddToCart} className="add-to-cart-button">
+            Add to Cart
+          </button>
+        )}
+        {showEditButton && (
+          <button onClick={onEdit} className="edit-meal-button">
+            Edit Meal
+          </button>
+        )}
+      </div>
     </div>
   );
 };

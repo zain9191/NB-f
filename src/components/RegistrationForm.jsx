@@ -49,7 +49,7 @@ const RegistrationForm = () => {
     email: "",
     password: "",
     phone_number: "",
-    zipCode: "",
+    postalCode: "",
   });
   const [error, setError] = useState(null);
 
@@ -142,9 +142,9 @@ const RegistrationForm = () => {
         <Label>Zip Code:</Label>
         <Input
           type="text"
-          name="zipCode"
+          name="postalCode"
           placeholder="Zip Code"
-          value={formData.zipCode}
+          value={formData.postalCode}
           onChange={handleChange}
           required
         />

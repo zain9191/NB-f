@@ -1,11 +1,32 @@
-// File: src/components/MealForm/MealForm.jsx
-import React, { useState, useContext } from "react";
-import axios from "axios";
-import { AuthContext } from "../../contexts/AuthContext";
+// src/components/MealForm/MealForm.jsx
 
+import React, { useState, useContext } from "react";
+import api from "../../utils/api"; // Import the centralized Axios instance
+import { AuthContext } from "../../contexts/AuthContext";
+import AddressSelector from "../AddressSelector/AddressSelector"; // Adjust the path as necessary
+
+// Optionally import CSS if available
+// import "./MealForm.css";
+
+/**
+ * Utility function to split comma-separated strings into trimmed arrays.
+ * @param {string} str - The comma-separated string.
+ * @returns {Array} - The trimmed array.
+ */
+const splitAndTrim = (str) =>
+  str
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item);
+
+/**
+ * MealForm Component
+ * Allows users to create a new meal with comprehensive details.
+ */
 const MealForm = () => {
   const { user } = useContext(AuthContext);
-  const [mealData, setMealData] = useState({
+
+  const initialMealData = {
     name: "",
     description: "",
     price: "",
@@ -23,16 +44,6 @@ const MealForm = () => {
     dietaryRestrictions: "",
     expirationDate: "",
     pickupDeliveryOptions: "",
-    location: {
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      coordinates: {
-        lat: "",
-        lng: "",
-      },
-    },
     preparationDate: "",
     packagingInformation: "",
     healthSafetyCompliance: "",
@@ -49,8 +60,15 @@ const MealForm = () => {
     quantityAvailable: "",
     discountsPromotions: "",
     images: [],
-  });
+    addressId: "", // Added addressId
+  };
 
+  const [mealData, setMealData] = useState(initialMealData);
+
+  /**
+   * Handles changes for both top-level and nested fields in the form.
+   * @param {Object} e - The event object.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setMealData((prevData) => {
@@ -68,56 +86,78 @@ const MealForm = () => {
     });
   };
 
+  /**
+   * Handles image file selection.
+   * @param {Object} e - The event object.
+   */
   const handleImageChange = (e) => {
     setMealData({ ...mealData, images: e.target.files });
   };
 
-  // Adjusted flattenObject function
-  const flattenObject = (obj, parentKey = "", result = {}) => {
-    for (let key in obj) {
-      const propName = parentKey ? `${parentKey}[${key}]` : key;
-      if (
-        typeof obj[key] === "object" &&
-        obj[key] !== null &&
-        !(obj[key] instanceof FileList)
-      ) {
-        flattenObject(obj[key], propName, result);
-      } else {
-        result[propName] = obj[key];
-      }
-    }
-    return result;
+  /**
+   * Prepares meal data for submission.
+   * @param {Object} data - The original meal data.
+   * @returns {Object} - The prepared meal data.
+   */
+  const prepareMealData = (data) => {
+    const { nutritionalInfo, contactInformation, ...rest } = data;
+
+    return {
+      ...rest,
+      ingredients: splitAndTrim(data.ingredients),
+      tags: splitAndTrim(data.tags),
+      dietaryRestrictions: splitAndTrim(data.dietaryRestrictions),
+      paymentOptions: splitAndTrim(data.paymentOptions),
+      nutritionalInfo: {
+        ...nutritionalInfo,
+        vitamins: splitAndTrim(nutritionalInfo.vitamins),
+      },
+      contactInformation: { ...contactInformation },
+      // Removed the location object in favor of addressId
+    };
   };
 
+  /**
+   * Handles form submission to create a new meal.
+   * @param {Object} e - The event object.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate that an address has been selected
+    if (!mealData.addressId) {
+      alert("Please select a valid address using the address selector.");
+      return;
+    }
+
+    // Prepare meal data to send
+    const mealDataToSend = prepareMealData(mealData);
+
+    // Initialize FormData
     const formData = new FormData();
 
-    const flatData = flattenObject(mealData);
-
-    for (let key in flatData) {
-      if (key === "images") {
-        for (let i = 0; i < flatData.images.length; i++) {
-          formData.append("images", flatData.images[i]);
+    // Append simple fields
+    for (let key in mealDataToSend) {
+      if (key === "images" && mealData.images instanceof FileList) {
+        for (let i = 0; i < mealData.images.length; i++) {
+          formData.append("images", mealData.images[i]);
         }
+      } else if (key === "nutritionalInfo" || key === "contactInformation") {
+        formData.append(key, JSON.stringify(mealDataToSend[key]));
       } else {
-        formData.append(key, flatData[key]);
+        formData.append(key, mealDataToSend[key]);
       }
     }
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/meals/create`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await api.post("/api/meals/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       alert("Meal created successfully");
+      // Optionally, reset the form or redirect the user
+      setMealData(initialMealData);
     } catch (error) {
       console.error(
         "Error creating meal",
@@ -133,10 +173,22 @@ const MealForm = () => {
     return <p>Please log in to create a meal.</p>;
   }
 
+  /**
+   * Handler to receive the selected addressId from AddressSelector
+   * @param {string} selectedAddressId - The selected address's _id
+   */
+  const handleAddressSelect = (selectedAddressId) => {
+    setMealData((prevData) => ({
+      ...prevData,
+      addressId: selectedAddressId,
+    }));
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="meal-form">
       <h2>Create a Meal</h2>
 
+      {/* Meal Details */}
       <input
         type="text"
         name="name"
@@ -145,14 +197,13 @@ const MealForm = () => {
         onChange={handleChange}
         required
       />
-      <input
-        type="text"
+      <textarea
         name="description"
         placeholder="Description"
         value={mealData.description}
         onChange={handleChange}
         required
-      />
+      ></textarea>
       <input
         type="number"
         name="price"
@@ -160,6 +211,8 @@ const MealForm = () => {
         value={mealData.price}
         onChange={handleChange}
         required
+        min="0"
+        step="0.01"
       />
       <input
         type="text"
@@ -203,6 +256,7 @@ const MealForm = () => {
         value={mealData.nutritionalInfo.calories}
         onChange={handleChange}
         required
+        min="0"
       />
       <input
         type="number"
@@ -211,6 +265,8 @@ const MealForm = () => {
         value={mealData.nutritionalInfo.protein}
         onChange={handleChange}
         required
+        min="0"
+        step="0.1"
       />
       <input
         type="number"
@@ -219,6 +275,8 @@ const MealForm = () => {
         value={mealData.nutritionalInfo.fat}
         onChange={handleChange}
         required
+        min="0"
+        step="0.1"
       />
       <input
         type="number"
@@ -227,6 +285,8 @@ const MealForm = () => {
         value={mealData.nutritionalInfo.carbs}
         onChange={handleChange}
         required
+        min="0"
+        step="0.1"
       />
       <input
         type="text"
@@ -236,6 +296,7 @@ const MealForm = () => {
         onChange={handleChange}
       />
 
+      {/* Dietary Restrictions */}
       <input
         type="text"
         name="dietaryRestrictions"
@@ -243,6 +304,8 @@ const MealForm = () => {
         value={mealData.dietaryRestrictions}
         onChange={handleChange}
       />
+
+      {/* Dates */}
       <input
         type="date"
         name="expirationDate"
@@ -252,6 +315,16 @@ const MealForm = () => {
         required
       />
       <input
+        type="date"
+        name="preparationDate"
+        placeholder="Preparation Date"
+        value={mealData.preparationDate}
+        onChange={handleChange}
+        required
+      />
+
+      {/* Pickup/Delivery Options */}
+      <input
         type="text"
         name="pickupDeliveryOptions"
         placeholder="Pickup/Delivery Options"
@@ -260,67 +333,17 @@ const MealForm = () => {
         required
       />
 
-      {/* Location */}
-      <h3>Location</h3>
-      <input
-        type="text"
-        name="location.address"
-        placeholder="Address"
-        value={mealData.location.address}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="location.city"
-        placeholder="City"
-        value={mealData.location.city}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="location.state"
-        placeholder="State"
-        value={mealData.location.state}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="location.zipCode"
-        placeholder="Zip Code"
-        value={mealData.location.zipCode}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="number"
-        step="any"
-        name="location.coordinates.lat"
-        placeholder="Latitude"
-        value={mealData.location.coordinates.lat}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="number"
-        step="any"
-        name="location.coordinates.lng"
-        placeholder="Longitude"
-        value={mealData.location.coordinates.lng}
-        onChange={handleChange}
-        required
-      />
+      {/* Address Selection using AddressSelector */}
+      <h3>Address</h3>
+      <AddressSelector onAddressSelect={handleAddressSelect} />
+      {/* Display selected address details for confirmation */}
+      {mealData.addressId && (
+        <p>
+          <strong>Selected Address ID:</strong> {mealData.addressId}
+        </p>
+      )}
 
-      <input
-        type="date"
-        name="preparationDate"
-        placeholder="Preparation Date"
-        value={mealData.preparationDate}
-        onChange={handleChange}
-        required
-      />
+      {/* Packaging and Compliance */}
       <input
         type="text"
         name="packagingInformation"
@@ -353,8 +376,11 @@ const MealForm = () => {
         value={mealData.contactInformation.phone}
         onChange={handleChange}
         required
+        pattern="^[0-9]{10,15}$" // Adjust pattern as needed
+        title="Please enter a valid phone number."
       />
 
+      {/* Payment and Additional Details */}
       <input
         type="text"
         name="paymentOptions"
@@ -408,6 +434,7 @@ const MealForm = () => {
         value={mealData.quantityAvailable}
         onChange={handleChange}
         required
+        min="1"
       />
       <input
         type="text"
@@ -417,13 +444,17 @@ const MealForm = () => {
         onChange={handleChange}
       />
 
+      {/* Image Upload */}
       <input
         type="file"
         name="images"
         multiple
         onChange={handleImageChange}
+        accept="image/*"
         required
       />
+
+      {/* Submit Button */}
       <button type="submit">Create Meal</button>
     </form>
   );

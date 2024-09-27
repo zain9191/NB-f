@@ -1,3 +1,5 @@
+// src/components/Profile/Profile.jsx
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddressForm from "../AddressForm";
@@ -22,29 +24,17 @@ const Profile = () => {
 
   // Centralized fetch logic with token validation
   const fetchWithAuth = async (method, url, data = null, options = {}) => {
-    // console.log(`Fetching with auth: ${method} ${url}`, options); // Debug
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("No token found, navigating to login."); // Debug
-      navigate("/login");
-      return;
-    }
-
     try {
       const response = await api({
         method,
         url,
         data,
-        headers: { Authorization: `Bearer ${token}`, ...options.headers },
         ...options,
       });
-      // console.log("Response received from fetchWithAuth:", response); // Debug
       return response;
     } catch (error) {
-      console.error("Error in fetchWithAuth:", error); // Debug
       if (error.response && error.response.status === 401) {
-        console.warn("Token invalid or expired, navigating to login."); // Debug
-        navigate("/login");
+        navigate("/home");
       }
       throw error;
     }
@@ -52,11 +42,10 @@ const Profile = () => {
 
   // Fetch the user's profile
   const fetchProfile = async () => {
-    // console.log("Fetching profile..."); // Debug
     setLoading(true);
     try {
       const response = await fetchWithAuth("get", "/api/auth");
-      // console.log("Profile data received:", response.data); // Debug
+      console.log("Profile Response:", response); // Debugging
       setProfile(response.data);
 
       // Fetch addresses after profile is loaded
@@ -65,35 +54,25 @@ const Profile = () => {
       handleError(error);
     } finally {
       setLoading(false);
-      // console.log("Profile fetching completed, loading state:", loading); // Debug
     }
   };
 
   // Fetch the user's addresses
   const fetchAddresses = async () => {
-    // console.log("Fetching addresses for user"); // Debug
     try {
       const response = await fetchWithAuth("get", "/api/address");
-      if (response && response.data) {
-        // console.log("Addresses data received:", response.data); // Debug
-        setAddresses(response.data);
+      console.log("Address Response:", response); // Debugging
+      if (response && response.data && response.data.success) {
+        setAddresses(response.data.data); // Correctly set to the addresses array
       } else {
-        // console.warn("No addresses found for user"); // Debug
         setAddresses([]);
         setAddressError("No addresses found.");
       }
     } catch (error) {
-      // console.error("Error fetching addresses:", error); // Debug
+      console.error("Error fetching addresses:", error);
       setAddressError("Failed to load addresses.");
     }
   };
-
-  // Monitor addresses state update
-  useEffect(() => {
-    if (addresses.length > 0) {
-      // console.log("Addresses state after setting:", addresses); // Debug
-    }
-  }, [addresses]);
 
   // Updated handleError function
   const handleError = (error) => {
@@ -101,7 +80,7 @@ const Profile = () => {
 
     if (error.response) {
       if (error.response.status === 401) {
-        navigate("/login");
+        navigate("/home");
       } else {
         setError(
           error.response.data?.message ||
@@ -114,6 +93,7 @@ const Profile = () => {
       setError("An unexpected error occurred. Please try again later.");
     }
   };
+
   // Fetch user's meals
   const fetchUserMeals = async () => {
     try {
@@ -125,30 +105,25 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    // console.log("Component mounted, fetching profile..."); // Debug
     fetchProfile();
     fetchUserMeals();
   }, []);
 
   // Handle profile picture upload
   const handleProfilePictureUpload = (profilePictureUrl) => {
-    // console.log("Profile picture uploaded:", profilePictureUrl); // Debug
     setProfile({ ...profile, profile_picture: profilePictureUrl });
   };
 
   // Add or update an address
   const addOrUpdateAddress = async (address) => {
-    // console.log("Attempting to add/update address:", address); // Debug
     try {
       if (editingAddress) {
-        // console.log("Updating address:", editingAddress._id); // Debug
         await fetchWithAuth(
           "put",
           `/api/address/update/${editingAddress._id}`,
           address
         );
       } else {
-        // console.log("Adding new address:", address); // Debug
         await fetchWithAuth("post", "/api/address/add", address);
       }
 
@@ -158,14 +133,13 @@ const Profile = () => {
       setEditingAddress(null);
       setShowAddressForm(false);
     } catch (error) {
-      console.error("Error adding/updating address:", error); // Debug
+      console.error("Error adding/updating address:", error);
       handleError(error);
     }
   };
 
   // Set active address
   const setActiveAddress = async (addressId) => {
-    // console.log("Setting active address:", addressId);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -181,7 +155,6 @@ const Profile = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // console.log("Active address set successfully:", response.data);
 
       // Fetch updated profile to reflect the new active address
       await fetchProfile();
@@ -193,45 +166,41 @@ const Profile = () => {
 
   // Delete an address
   const deleteAddress = async (addressId) => {
-    // console.log("Deleting address:", addressId); // Debug
     try {
       await fetchWithAuth("delete", `/api/address/delete/${addressId}`);
 
       // Fetch updated addresses
       await fetchAddresses();
     } catch (error) {
-      console.error("Error deleting address:", error); // Debug
+      console.error("Error deleting address:", error);
       handleError(error);
     }
   };
 
   // Modify an address
   const modifyAddress = (addressId) => {
-    // console.log("Modifying address:", addressId); // Debug
     const addressToEdit = addresses.find(
       (address) => address._id === addressId
     );
 
-    // console.log("Address to edit:", addressToEdit); // Debug
     setEditingAddress(addressToEdit);
     setShowAddressForm(true);
   };
 
   // Loading state
   if (loading) {
-    // console.log("Loading..."); // Debug
     return <div>Loading...</div>;
   }
 
   // Error state
   if (error) {
-    console.error("Rendering error:", error); // Debug
+    console.error("Rendering error:", error);
     return <div>{error}</div>;
   }
 
   // No profile found
   if (!profile) {
-    // console.warn("Profile not found."); // Debug
+    console.warn("Profile not found.");
     return <div>Profile data could not be loaded.</div>;
   }
 
@@ -244,7 +213,7 @@ const Profile = () => {
       <h1 className="header">Profile</h1>
       <div className="profile-section">
         <img
-          className="profil-pic"
+          className="profile-pic"
           src={imageError ? "/uploads/default-pp.png" : profilePictureUrl}
           alt="Profile"
           onError={() => setImageError(true)}
@@ -258,18 +227,15 @@ const Profile = () => {
         <p className="info">Phone: {profile.phone_number}</p>
 
         <h2>Current Address</h2>
-        {profile.activeAddress ? (
-          <div>
-            {profile.activeAddress.street}, {profile.activeAddress.city},{" "}
-            {profile.activeAddress.state}, {profile.activeAddress.postalCode},{" "}
-            {profile.activeAddress.country}
-          </div>
-        ) : (
-          <p>No active address set.</p>
-        )}
+        <p className="meal-location">
+          {profile.activeAddress
+            ? `${profile.activeAddress.street}, ${profile.activeAddress.city}, ${profile.activeAddress.state}, ${profile.activeAddress.postalCode}, ${profile.activeAddress.country}`
+            : "N/A"}
+        </p>
 
-        <div className="profile-details">
+        <div className="addresses-section">
           <h2>All Addresses</h2>
+          {addressError && <p className="error">{addressError}</p>}
           <ul className="address-list">
             {Array.isArray(addresses) && addresses.length > 0 ? (
               addresses.map((address) => {
@@ -279,21 +245,30 @@ const Profile = () => {
 
                 return (
                   <li key={address._id} className="address-item">
-                    <span>
-                      {address.street}, {address.city}, {address.state},{" "}
-                      {address.postalCode}, {address.country}
+                    <span className="address-info">
+                      {address.formattedAddress ||
+                        `${address.street}, ${address.city}, ${address.state}, ${address.postalCode}, ${address.country}`}
                     </span>
                     <div className="address-actions">
-                      <button onClick={() => modifyAddress(address._id)}>
+                      <button
+                        onClick={() => modifyAddress(address._id)}
+                        className="edit-address-button"
+                      >
                         Edit
                       </button>
-                      <button onClick={() => deleteAddress(address._id)}>
+                      <button
+                        onClick={() => deleteAddress(address._id)}
+                        className="delete-address-button"
+                      >
                         Delete
                       </button>
                       {isActive ? (
-                        <span>Active</span>
+                        <span className="active-label">Active</span>
                       ) : (
-                        <button onClick={() => setActiveAddress(address._id)}>
+                        <button
+                          onClick={() => setActiveAddress(address._id)}
+                          className="set-active-button"
+                        >
                           Set as Active
                         </button>
                       )}
@@ -308,9 +283,8 @@ const Profile = () => {
         </div>
 
         <button
-          className="button"
+          className="button toggle-address-form-button"
           onClick={() => {
-            console.log("Toggling address form."); // Debug
             setEditingAddress(null);
             setShowAddressForm(!showAddressForm);
           }}
