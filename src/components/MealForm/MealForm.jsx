@@ -1,4 +1,4 @@
-// src/components/MealForm/MealForm.jsx
+// File: src/components/MealForm/MealForm.jsx
 
 import React, { useState, useContext } from "react";
 import api from "../../utils/api"; // Import the centralized Axios instance
@@ -74,15 +74,15 @@ const MealForm = () => {
     setMealData((prevData) => {
       const keys = name.split(".");
       const lastKey = keys.pop();
-      const nestedData = { ...prevData };
+      const updatedData = { ...prevData };
 
-      let temp = nestedData;
-      for (let key of keys) {
+      let temp = updatedData;
+      keys.forEach((key) => {
         if (!temp[key]) temp[key] = {};
         temp = temp[key];
-      }
+      });
       temp[lastKey] = value;
-      return nestedData;
+      return updatedData;
     });
   };
 
@@ -110,7 +110,7 @@ const MealForm = () => {
       paymentOptions: splitAndTrim(data.paymentOptions),
       nutritionalInfo: {
         ...nutritionalInfo,
-        vitamins: splitAndTrim(nutritionalInfo.vitamins),
+        vitamins: splitAndTrim(nutritionalInfo.vitamins || ""),
       },
       contactInformation: { ...contactInformation },
       // Removed the location object in favor of addressId
@@ -150,21 +150,26 @@ const MealForm = () => {
     }
 
     try {
-      await api.post("/api/meals/create", formData, {
+      const response = await api.post("/api/meals", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      alert("Meal created successfully");
-      // Optionally, reset the form or redirect the user
-      setMealData(initialMealData);
+
+      if (response.data.success) {
+        alert("Meal created successfully");
+        // Optionally, reset the form or redirect the user
+        setMealData(initialMealData);
+      } else {
+        alert(response.data.msg || "Failed to create meal.");
+      }
     } catch (error) {
       console.error(
         "Error creating meal",
         error.response?.data || error.message
       );
       alert(
-        "Error creating meal: " + (error.response?.data?.error || error.message)
+        "Error creating meal: " + (error.response?.data?.msg || error.message)
       );
     }
   };
@@ -451,7 +456,6 @@ const MealForm = () => {
         multiple
         onChange={handleImageChange}
         accept="image/*"
-        required
       />
 
       {/* Submit Button */}

@@ -1,12 +1,10 @@
-// src/components/EditMealForm.jsx
+// File: src/components/EditMealForm.jsx
 
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../utils/api"; // Import the centralized Axios instance
+import api from "../utils/api"; // Centralized Axios instance
 import { AuthContext } from "../contexts/AuthContext";
-
-// Import the AddressSelector component
-import AddressSelector from "../components/AddressSelector/AddressSelector"; // Adjust the path as necessary
+import AddressSelector from "./AddressSelector/AddressSelector"; // Adjust the path as necessary
 
 /**
  * Utility function to split comma-separated strings into trimmed arrays.
@@ -26,14 +24,13 @@ const splitAndTrim = (str) =>
  */
 const prepareMealData = (mealData) => {
   const {
-    createdBy, // Exclude 'createdBy'
+    createdBy,
     ingredients,
     tags,
     dietaryRestrictions,
     paymentOptions,
     nutritionalInfo,
     contactInformation,
-    // location is already handled via addressId
     addressId,
     ...rest
   } = mealData;
@@ -46,9 +43,12 @@ const prepareMealData = (mealData) => {
     paymentOptions: splitAndTrim(paymentOptions),
     nutritionalInfo: {
       ...nutritionalInfo,
-      vitamins: splitAndTrim(nutritionalInfo.vitamins),
+      vitamins: splitAndTrim(nutritionalInfo.vitamins || ""),
     },
-    contactInformation: { ...contactInformation },
+    contactInformation: {
+      email: contactInformation.email || "",
+      phone: contactInformation.phone || "",
+    },
     addressId, // Ensure addressId is included
   };
 };
@@ -65,35 +65,69 @@ const EditMealForm = () => {
   useEffect(() => {
     const fetchMeal = async () => {
       try {
-        const response = await api.get(`/api/meals/${id}`); // Use `api` instead of `axios`
+        const response = await api.get(`/api/meals/${id}`); // Fetch meal by ID
 
-        // Check if the logged-in user is the creator of the meal
-        if (response.data.createdBy._id.toString() !== user._id.toString()) {
-          alert("You are not authorized to edit this meal.");
-          navigate("/profile");
-          return;
+        if (response.data.success) {
+          const fetchedMeal = response.data.data;
+
+          // Check if the logged-in user is the creator of the meal
+          const creatorId =
+            typeof fetchedMeal.createdBy === "object" &&
+            fetchedMeal.createdBy !== null
+              ? fetchedMeal.createdBy._id
+              : fetchedMeal.createdBy;
+
+          if (creatorId.toString() !== user._id.toString()) {
+            alert("You are not authorized to edit this meal.");
+            navigate("/profile");
+            return;
+          }
+
+          // Ensure contactInformation and nutritionalInfo exist
+          const processedMeal = {
+            ...fetchedMeal,
+            ingredients: Array.isArray(fetchedMeal.ingredients)
+              ? fetchedMeal.ingredients.join(", ")
+              : fetchedMeal.ingredients || "",
+            tags: Array.isArray(fetchedMeal.tags)
+              ? fetchedMeal.tags.join(", ")
+              : fetchedMeal.tags || "",
+            dietaryRestrictions: Array.isArray(fetchedMeal.dietaryRestrictions)
+              ? fetchedMeal.dietaryRestrictions.join(", ")
+              : fetchedMeal.dietaryRestrictions || "",
+            paymentOptions: Array.isArray(fetchedMeal.paymentOptions)
+              ? fetchedMeal.paymentOptions.join(", ")
+              : fetchedMeal.paymentOptions || "",
+            nutritionalInfo: {
+              calories: fetchedMeal.nutritionalInfo?.calories || "",
+              protein: fetchedMeal.nutritionalInfo?.protein || "",
+              fat: fetchedMeal.nutritionalInfo?.fat || "",
+              carbs: fetchedMeal.nutritionalInfo?.carbs || "",
+              vitamins: Array.isArray(fetchedMeal.nutritionalInfo?.vitamins)
+                ? fetchedMeal.nutritionalInfo.vitamins.join(", ")
+                : fetchedMeal.nutritionalInfo?.vitamins || "",
+            },
+            contactInformation: {
+              email: fetchedMeal.contactInformation?.email || "",
+              phone: fetchedMeal.contactInformation?.phone || "",
+            },
+          };
+
+          setMealData({
+            ...processedMeal,
+            addressId:
+              fetchedMeal.address && fetchedMeal.address._id
+                ? fetchedMeal.address._id
+                : "",
+          });
+          setSelectedAddressId(
+            fetchedMeal.address && fetchedMeal.address._id
+              ? fetchedMeal.address._id
+              : ""
+          );
+        } else {
+          setError(response.data.msg || "Failed to fetch meal data.");
         }
-
-        const fetchedMeal = response.data;
-
-        // Convert array fields to comma-separated strings
-        const processedMeal = {
-          ...fetchedMeal,
-          ingredients: fetchedMeal.ingredients.join(", "),
-          tags: fetchedMeal.tags.join(", "),
-          dietaryRestrictions: fetchedMeal.dietaryRestrictions.join(", "),
-          paymentOptions: fetchedMeal.paymentOptions.join(", "),
-          nutritionalInfo: {
-            ...fetchedMeal.nutritionalInfo,
-            vitamins: fetchedMeal.nutritionalInfo.vitamins.join(", "),
-          },
-        };
-
-        setMealData({
-          ...processedMeal,
-          addressId: fetchedMeal.address._id, // Use address _id
-        });
-        setSelectedAddressId(fetchedMeal.address._id);
       } catch (error) {
         console.error("Error fetching meal:", error);
         setError("Error fetching meal data.");
@@ -169,19 +203,22 @@ const EditMealForm = () => {
       }
 
       // Send PUT request to update the meal
-      await api.put(`/api/meals/update/${id}`, formData, {
-        // Use `api` instead of `axios`
+      const response = await api.put(`/api/meals/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      alert("Meal updated successfully");
-      navigate("/profile");
+      if (response.data.success) {
+        alert("Meal updated successfully");
+        navigate("/profile");
+      } else {
+        alert(response.data.msg || "Failed to update meal.");
+      }
     } catch (error) {
       console.error("Error updating meal:", error);
       alert(
-        "Error updating meal: " + (error.response?.data?.error || error.message)
+        "Error updating meal: " + (error.response?.data?.msg || error.message)
       );
     }
   };
@@ -195,7 +232,7 @@ const EditMealForm = () => {
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p style={{ color: "red" }}>{error}</p>;
   }
 
   if (!mealData) {
@@ -204,7 +241,6 @@ const EditMealForm = () => {
 
   /**
    * Handler to receive the selected addressId from AddressSelector
-   * @param {string} selectedAddressId - The selected address's _id
    */
   const handleAddressSelect = (selectedAddressId) => {
     setMealData((prevData) => ({
@@ -241,6 +277,8 @@ const EditMealForm = () => {
         value={mealData.price}
         onChange={handleChange}
         required
+        min="0"
+        step="0.01"
       />
       <input
         type="text"
@@ -284,6 +322,7 @@ const EditMealForm = () => {
         value={mealData.nutritionalInfo.calories}
         onChange={handleChange}
         required
+        min="0"
       />
       <input
         type="number"
@@ -292,6 +331,8 @@ const EditMealForm = () => {
         value={mealData.nutritionalInfo.protein}
         onChange={handleChange}
         required
+        min="0"
+        step="0.1"
       />
       <input
         type="number"
@@ -300,6 +341,8 @@ const EditMealForm = () => {
         value={mealData.nutritionalInfo.fat}
         onChange={handleChange}
         required
+        min="0"
+        step="0.1"
       />
       <input
         type="number"
@@ -308,6 +351,8 @@ const EditMealForm = () => {
         value={mealData.nutritionalInfo.carbs}
         onChange={handleChange}
         required
+        min="0"
+        step="0.1"
       />
       <input
         type="text"
@@ -394,7 +439,7 @@ const EditMealForm = () => {
         type="email"
         name="contactInformation.email"
         placeholder="Contact Email"
-        value={mealData.contactInformation.email}
+        value={mealData.contactInformation.email || ""}
         onChange={handleChange}
         required
       />
@@ -402,9 +447,11 @@ const EditMealForm = () => {
         type="tel"
         name="contactInformation.phone"
         placeholder="Contact Phone"
-        value={mealData.contactInformation.phone}
+        value={mealData.contactInformation.phone || ""}
         onChange={handleChange}
         required
+        pattern="^[0-9]{10,15}$" // Adjust pattern as needed
+        title="Please enter a valid phone number."
       />
 
       {/* Payment and Additional Details */}
@@ -461,6 +508,7 @@ const EditMealForm = () => {
         value={mealData.quantityAvailable}
         onChange={handleChange}
         required
+        min="1"
       />
       <input
         type="text"

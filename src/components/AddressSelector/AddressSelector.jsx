@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../utils/api"; // Import the centralized Axios instance
 import PropTypes from "prop-types";
 
-const AddressSelector = ({ onAddressSelect }) => {
+const AddressSelector = ({ onAddressSelect, onAddAddress }) => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [showAddAddressForm, setShowAddAddressForm] = useState(false);
@@ -79,6 +79,7 @@ const AddressSelector = ({ onAddressSelect }) => {
         formattedAddress: "",
       });
       setShowAddAddressForm(false);
+      if (onAddAddress) onAddAddress(createdAddress); // Notify parent
     } catch (err) {
       console.error("Error adding new address:", err);
       setError("Failed to add new address.");
@@ -111,75 +112,77 @@ const AddressSelector = ({ onAddressSelect }) => {
       </button>
 
       {showAddAddressForm && (
-        <form onSubmit={handleAddAddress} className="add-address-form">
+        <div className="add-address-form">
           <h3>Add New Address</h3>
-          <input
-            type="text"
-            name="street"
-            placeholder="Street"
-            value={newAddress.street}
-            onChange={handleNewAddressChange}
-            required
-          />
-          <input
-            type="text"
-            name="city"
-            placeholder="City"
-            value={newAddress.city}
-            onChange={handleNewAddressChange}
-            required
-          />
-          <input
-            type="text"
-            name="state"
-            placeholder="State"
-            value={newAddress.state}
-            onChange={handleNewAddressChange}
-          />
-          <input
-            type="text"
-            name="postalCode"
-            placeholder="Postal Code"
-            value={newAddress.postalCode}
-            onChange={handleNewAddressChange}
-            required
-          />
-          <input
-            type="text"
-            name="country"
-            placeholder="Country"
-            value={newAddress.country}
-            onChange={handleNewAddressChange}
-            required
-          />
-          <input
-            type="number"
-            name="latitude"
-            placeholder="Latitude"
-            value={newAddress.latitude}
-            onChange={handleNewAddressChange}
-            required
-          />
-          <input
-            type="number"
-            name="longitude"
-            placeholder="Longitude"
-            value={newAddress.longitude}
-            onChange={handleNewAddressChange}
-            required
-          />
-          <input
-            type="text"
-            name="formattedAddress"
-            placeholder="Formatted Address"
-            value={newAddress.formattedAddress}
-            onChange={handleNewAddressChange}
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? "Adding..." : "Add Address"}
-          </button>
-          {error && <p className="error">{error}</p>}
-        </form>
+          <form onSubmit={handleAddAddress}>
+            <input
+              type="text"
+              name="street"
+              placeholder="Street"
+              value={newAddress.street}
+              onChange={handleNewAddressChange}
+              required
+            />
+            <input
+              type="text"
+              name="city"
+              placeholder="City"
+              value={newAddress.city}
+              onChange={handleNewAddressChange}
+              required
+            />
+            <input
+              type="text"
+              name="state"
+              placeholder="State"
+              value={newAddress.state}
+              onChange={handleNewAddressChange}
+            />
+            <input
+              type="text"
+              name="postalCode"
+              placeholder="Postal Code"
+              value={newAddress.postalCode}
+              onChange={handleNewAddressChange}
+              required
+            />
+            <input
+              type="text"
+              name="country"
+              placeholder="Country"
+              value={newAddress.country}
+              onChange={handleNewAddressChange}
+              required
+            />
+            <input
+              type="number"
+              name="latitude"
+              placeholder="Latitude"
+              value={newAddress.latitude}
+              onChange={handleNewAddressChange}
+              required
+            />
+            <input
+              type="number"
+              name="longitude"
+              placeholder="Longitude"
+              value={newAddress.longitude}
+              onChange={handleNewAddressChange}
+              required
+            />
+            <input
+              type="text"
+              name="formattedAddress"
+              placeholder="Formatted Address"
+              value={newAddress.formattedAddress}
+              onChange={handleNewAddressChange}
+            />
+            <button type="submit" disabled={loading}>
+              {loading ? "Adding..." : "Add Address"}
+            </button>
+            {error && <p className="error">{error}</p>}
+          </form>
+        </div>
       )}
     </div>
   );
@@ -187,6 +190,7 @@ const AddressSelector = ({ onAddressSelect }) => {
 
 AddressSelector.propTypes = {
   onAddressSelect: PropTypes.func.isRequired,
+  onAddAddress: PropTypes.func, // Optional callback
 };
 
 export default AddressSelector;

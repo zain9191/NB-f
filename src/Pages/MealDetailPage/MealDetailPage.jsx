@@ -1,20 +1,17 @@
-// File: src/components/MealDetailPage.jsx
+// src/components/MealDetailPage.jsx
 
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
-
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
 import "./MealDetailPage.css";
 import { CartContext } from "../../contexts/CartContext";
 
 const MealDetailPage = () => {
   const { id } = useParams();
   const [meal, setMeal] = useState(null);
-
   const { addToCart } = useContext(CartContext);
   const [quantity, setQuantity] = useState(1);
 
@@ -22,7 +19,7 @@ const MealDetailPage = () => {
     const fetchMeal = async () => {
       try {
         const response = await api.get(`/api/meals/${id}`);
-        setMeal(response.data);
+        setMeal(response.data.data);
       } catch (error) {
         console.error("Error fetching meal details", error);
       }

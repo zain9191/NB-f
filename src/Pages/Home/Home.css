@@ -147,8 +147,20 @@
     gap: 20px;
   }
   
-  /* Button Styles (Optional for other components) */
-  button {
+   button {
     font-family: inherit;
+  }
+  
+  .search-bar {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
   }
   

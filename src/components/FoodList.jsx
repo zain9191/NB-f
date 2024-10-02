@@ -10,7 +10,7 @@ const FoodList = () => {
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
-        const response = await api.get("/api/food"); // Use `api` instead of `axios`
+        const response = await api.get("/api/meals");
         setFoodItems(response.data);
       } catch (error) {
         console.error(error);

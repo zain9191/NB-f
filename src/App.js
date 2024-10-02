@@ -10,7 +10,7 @@ import Login from './pages/Login';
 import PrivateRoute from './utils/PrivateRoute';
 import CartProvider from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
-import MealsList from './components/MealsList';
+import MealsList from './components/MealsList/MealsList';
 import NotFound from './pages/NotFound';
 import CartPage from './pages/CartPage/CartPage';
 import MealForm from './components/MealForm/MealForm';
