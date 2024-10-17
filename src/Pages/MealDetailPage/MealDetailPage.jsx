@@ -1,5 +1,4 @@
-// src/components/MealDetailPage.jsx
-
+// src/components/MealDetailPage/MealDetailPage.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
@@ -19,9 +18,14 @@ const MealDetailPage = () => {
     const fetchMeal = async () => {
       try {
         const response = await api.get(`/api/meals/${id}`);
-        setMeal(response.data.data);
+        if (response.success) {
+          setMeal(response.data);
+        } else {
+          alert(response.msg || "Failed to fetch meal details.");
+        }
       } catch (error) {
         console.error("Error fetching meal details", error);
+        alert(error.message || "Error fetching meal details.");
       }
     };
 
@@ -39,7 +43,6 @@ const MealDetailPage = () => {
     }
   };
 
-  // Add a meal to cart
   const handleAddToCart = () => {
     addToCart(meal, quantity);
     alert(`${meal?.name} has been added to your cart.`);
@@ -63,7 +66,7 @@ const MealDetailPage = () => {
               {meal.images.map((img, index) => (
                 <div key={index}>
                   <img
-                    src={`${process.env.REACT_APP_API_BASE_URL}/${img}`}
+                    src={`${api.defaults.baseURL}/${img}`}
                     alt={`${meal?.name} ${index + 1}`}
                     className="carousel-image"
                   />
@@ -72,7 +75,7 @@ const MealDetailPage = () => {
             </Slider>
           ) : (
             <img
-              src="/default-meal-image.jpg" // Provide a default image path
+              src="/default-meal-image.jpg"
               alt="Default Meal"
               className="carousel-image"
             />
@@ -115,24 +118,8 @@ const MealDetailPage = () => {
             </p>
           </div>
           <div className="meal-address">
-            <h2>Address</h2>
             <p>
-              <strong>Street:</strong> {meal?.address?.street || "N/A"}
-            </p>
-            <p>
-              <strong>City:</strong> {meal?.address?.city || "N/A"}
-            </p>
-            <p>
-              <strong>State:</strong> {meal?.address?.state || "N/A"}
-            </p>
-            <p>
-              <strong>ZIP Code:</strong> {meal?.address?.postalCode || "N/A"}
-            </p>
-            <p>
-              <strong>Country:</strong> {meal?.address?.country || "N/A"}
-            </p>
-            <p>
-              <strong>Formatted Address:</strong>{" "}
+              <strong> Address:</strong>{" "}
               {meal?.address?.formattedAddress || "N/A"}
             </p>
             <p>

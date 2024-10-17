@@ -1,167 +1,119 @@
-import React, { useState, useEffect, useContext } from "react";
+// src/components/Settings/Settings.jsx
+import React, { useEffect, useState, useContext } from "react";
+import { useForm } from "react-hook-form";
 import api from "../../utils/api";
 import { AuthContext } from "../../contexts/AuthContext";
-import ProfilePictureUpload from "../ProfilePictureUpload";
 
 const Settings = () => {
   const { user, setUser } = useContext(AuthContext);
-  const [formData, setFormData] = useState({
-    full_name: "",
-    username: "",
-    email: "",
-    phone_number: "",
-  });
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmNewPassword: "",
-  });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    // Fetch user profile data
-    const fetchProfile = async () => {
+    const fetchSettings = async () => {
       try {
-        const response = await api.get("/api/profile");
-        setFormData({
-          full_name: response.data.full_name,
-          username: response.data.username,
-          email: response.data.email,
-          phone_number: response.data.phone_number,
+        const response = await api.get("/api/auth");
+        const userData = response.user || response.data.user || response.data;
+        setUser(userData);
+        reset({
+          fullName: userData.fullName,
+          username: userData.username,
+          email: userData.email,
+          phoneNumber: userData.phoneNumber,
         });
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching profile data:", err);
-        setError("Failed to load profile data.");
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+        alert("Failed to load settings. Please try again later.");
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, []);
+    fetchSettings();
+  }, [reset, setUser]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
+    setUpdating(true);
     try {
-      const response = await api.put("/api/profile/update", formData);
-      alert("Profile updated successfully.");
-      setUser(response.data);
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      setError("Failed to update profile.");
+      const response = await api.put("/api/auth", data);
+      if (response.success) {
+        setUser(response.data.user || response.data || response);
+        alert("Settings updated successfully!");
+      } else {
+        alert(response.msg || "Failed to update settings.");
+      }
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      alert("An error occurred while updating settings. Please try again.");
+    } finally {
+      setUpdating(false);
     }
   };
 
-  const handlePasswordChange = (e) => {
-    setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
-  };
-
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-      setError("New passwords do not match.");
-      return;
-    }
-    try {
-      await api.put("/api/profile/change-password", passwordData);
-      alert("Password updated successfully.");
-    } catch (err) {
-      console.error("Error changing password:", err);
-      setError("Failed to change password.");
-    }
-  };
-
-  if (loading) {
-    return <p>Loading profile data...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (loading) return <p>Loading settings...</p>;
 
   return (
-    <>
-      <h2>Profile Picture</h2>
-      <ProfilePictureUpload
-        onUpload={(url) => setUser({ ...user, profile_picture: url })}
-      />
+    <form onSubmit={handleSubmit(onSubmit)} className="settings-form">
+      <div className="form-group">
+        <label htmlFor="full_name">Full Name</label>
+        <input
+          id="full_name"
+          type="text"
+          {...register("full_name", { required: "Full name is required" })}
+          placeholder="Full Name"
+          className={errors.full_name ? "input-error" : ""}
+        />
+        {errors.full_name && (
+          <p className="error-message">{errors.full_name.message}</p>
+        )}
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Full Name:</label>
-          <input
-            type="text"
-            name="full_name"
-            value={formData.full_name}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Phone Number:</label>
-          <input
-            type="tel"
-            name="phone_number"
-            value={formData.phone_number}
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Save Changes</button>
-      </form>
+      <div className="form-group">
+        <label htmlFor="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          {...register("username", { required: "Username is required" })}
+          placeholder="Username"
+          className={errors.username ? "input-error" : ""}
+        />
+        {errors.username && (
+          <p className="error-message">{errors.username.message}</p>
+        )}
+      </div>
 
-      <form onSubmit={handlePasswordSubmit}>
-        <div>
-          <label>Current Password:</label>
-          <input
-            type="password"
-            name="currentPassword"
-            value={passwordData.currentPassword}
-            onChange={handlePasswordChange}
-          />
-        </div>
-        <div>
-          <label>New Password:</label>
-          <input
-            type="password"
-            name="newPassword"
-            value={passwordData.newPassword}
-            onChange={handlePasswordChange}
-          />
-        </div>
-        <div>
-          <label>Confirm New Password:</label>
-          <input
-            type="password"
-            name="confirmNewPassword"
-            value={passwordData.confirmNewPassword}
-            onChange={handlePasswordChange}
-          />
-        </div>
-        <button type="submit">Change Password</button>
-      </form>
-    </>
+      <div className="form-group">
+        <label htmlFor="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Invalid email address",
+            },
+          })}
+          placeholder="Email"
+          className={errors.email ? "input-error" : ""}
+        />
+        {errors.email && (
+          <p className="error-message">{errors.email.message}</p>
+        )}
+      </div>
+
+      {/* Add other fields as necessary */}
+
+      <button type="submit" disabled={updating}>
+        {updating ? "Updating..." : "Update Settings"}
+      </button>
+    </form>
   );
 };
 

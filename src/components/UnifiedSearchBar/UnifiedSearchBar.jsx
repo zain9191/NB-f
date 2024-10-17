@@ -16,7 +16,6 @@ const UnifiedSearchBar = ({ onSearch }) => {
       const results = await geocodeByAddress(value);
       const latLng = await getLatLng(results[0]);
 
-      // Extract address components
       const addressComponents = results[0].address_components;
       let city = "";
       let state = "";
@@ -35,7 +34,6 @@ const UnifiedSearchBar = ({ onSearch }) => {
         }
       });
 
-      // Call onSearch with the parameters
       onSearch({
         search: "",
         address: value,
@@ -43,7 +41,7 @@ const UnifiedSearchBar = ({ onSearch }) => {
         state,
         postalCode,
         coordinates: { lat: latLng.lat, lng: latLng.lng },
-        radius: 10000, // default radius in meters
+        radius: 10000,
       });
     } catch (error) {
       console.error("Error fetching address details:", error);
@@ -59,12 +57,10 @@ const UnifiedSearchBar = ({ onSearch }) => {
 
     if (!searchInput.trim()) return;
 
-    // Try to geocode the input as an address
     try {
       const results = await geocodeByAddress(searchInput);
       const latLng = await getLatLng(results[0]);
 
-      // Extract address components
       const addressComponents = results[0].address_components;
       let city = "";
       let state = "";
@@ -83,7 +79,6 @@ const UnifiedSearchBar = ({ onSearch }) => {
         }
       });
 
-      // Call onSearch with the parameters
       onSearch({
         search: "",
         address: searchInput,
@@ -91,10 +86,9 @@ const UnifiedSearchBar = ({ onSearch }) => {
         state,
         postalCode,
         coordinates: { lat: latLng.lat, lng: latLng.lng },
-        radius: 10000, // default radius in meters
+        radius: 10000,
       });
     } catch (error) {
-      // If geocoding fails, treat the input as a meal name search
       onSearch({
         search: searchInput,
         coordinates: null,

@@ -1,196 +1,85 @@
 // src/components/AddressSelector/AddressSelector.jsx
-import React, { useState, useEffect } from "react";
-import api from "../../utils/api"; // Import the centralized Axios instance
-import PropTypes from "prop-types";
+import React, { useEffect, useState, useContext } from "react";
+import api from "../../utils/api";
+import { AuthContext } from "../../contexts/AuthContext";
+import "./AddressSelector.css";
 
-const AddressSelector = ({ onAddressSelect, onAddAddress }) => {
+const AddressSelector = ({
+  onAddressSelect,
+  selectedAddressId,
+  onAddAddress,
+}) => {
+  const { user } = useContext(AuthContext);
   const [addresses, setAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] = useState("");
-  const [showAddAddressForm, setShowAddAddressForm] = useState(false);
-  const [newAddress, setNewAddress] = useState({
-    street: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "",
-    latitude: "",
-    longitude: "",
-    formattedAddress: "",
-  });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch existing addresses on component mount
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
-        const response = await api.get("/api/address"); // Use `api` instead of `axios`
-        setAddresses(response.data.data); // Assuming the response structure
-      } catch (err) {
-        console.error("Error fetching addresses:", err);
-        setError("Failed to fetch addresses.");
+        const response = await api.get("/api/address");
+        if (response.success) {
+          setAddresses(response.data); // Correctly set to the addresses array
+        } else {
+          setError("Failed to fetch addresses.");
+        }
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+        setError("Error fetching addresses.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchAddresses();
-  }, []);
-
-  // Handle selection of an existing address
-  const handleSelectChange = (e) => {
-    const addressId = e.target.value;
-    setSelectedAddressId(addressId);
-    const selectedAddress = addresses.find((addr) => addr._id === addressId);
-    if (selectedAddress) {
-      onAddressSelect(addressId);
+    if (user) {
+      fetchAddresses();
     }
-  };
+  }, [user]);
 
-  // Toggle the Add Address form
-  const toggleAddAddressForm = () => {
-    setShowAddAddressForm(!showAddAddressForm);
-  };
+  if (loading) {
+    return <p>Loading addresses...</p>;
+  }
 
-  // Handle changes in the Add Address form
-  const handleNewAddressChange = (e) => {
-    const { name, value } = e.target;
-    setNewAddress((prev) => ({ ...prev, [name]: value }));
-  };
+  if (error) {
+    return <p style={{ color: "red" }}>{error}</p>;
+  }
 
-  // Handle submission of the Add Address form
-  const handleAddAddress = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await api.post("/api/address/add", newAddress); // Use `api` instead of `axios`
-      const createdAddress = response.data;
-      setAddresses((prev) => [...prev, createdAddress]);
-      setSelectedAddressId(createdAddress._id);
-      onAddressSelect(createdAddress._id);
-      setNewAddress({
-        street: "",
-        city: "",
-        state: "",
-        postalCode: "",
-        country: "",
-        latitude: "",
-        longitude: "",
-        formattedAddress: "",
-      });
-      setShowAddAddressForm(false);
-      if (onAddAddress) onAddAddress(createdAddress); // Notify parent
-    } catch (err) {
-      console.error("Error adding new address:", err);
-      setError("Failed to add new address.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!Array.isArray(addresses) || addresses.length === 0) {
+    return (
+      <div className="address-selector">
+        <p>No saved addresses. Please add a new address.</p>
+        {onAddAddress && (
+          <button type="button" onClick={onAddAddress}>
+            Add New Address
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="address-selector">
-      <label htmlFor="address">Select Address:</label>
       <select
-        id="address"
-        value={selectedAddressId}
-        onChange={handleSelectChange}
+        value={selectedAddressId || ""}
+        onChange={(e) => onAddressSelect(e.target.value)}
         required
       >
         <option value="" disabled>
-          -- Select an Address --
+          Select an Address
         </option>
         {addresses.map((address) => (
           <option key={address._id} value={address._id}>
-            {address.formattedAddress || `${address.street}, ${address.city}`}
+            {`${address.street}, ${address.city}, ${address.state}, ${address.postalCode}, ${address.country}`}
           </option>
         ))}
       </select>
-
-      <button type="button" onClick={toggleAddAddressForm}>
-        {showAddAddressForm ? "Cancel" : "Add New Address"}
-      </button>
-
-      {showAddAddressForm && (
-        <div className="add-address-form">
-          <h3>Add New Address</h3>
-          <form onSubmit={handleAddAddress}>
-            <input
-              type="text"
-              name="street"
-              placeholder="Street"
-              value={newAddress.street}
-              onChange={handleNewAddressChange}
-              required
-            />
-            <input
-              type="text"
-              name="city"
-              placeholder="City"
-              value={newAddress.city}
-              onChange={handleNewAddressChange}
-              required
-            />
-            <input
-              type="text"
-              name="state"
-              placeholder="State"
-              value={newAddress.state}
-              onChange={handleNewAddressChange}
-            />
-            <input
-              type="text"
-              name="postalCode"
-              placeholder="Postal Code"
-              value={newAddress.postalCode}
-              onChange={handleNewAddressChange}
-              required
-            />
-            <input
-              type="text"
-              name="country"
-              placeholder="Country"
-              value={newAddress.country}
-              onChange={handleNewAddressChange}
-              required
-            />
-            <input
-              type="number"
-              name="latitude"
-              placeholder="Latitude"
-              value={newAddress.latitude}
-              onChange={handleNewAddressChange}
-              required
-            />
-            <input
-              type="number"
-              name="longitude"
-              placeholder="Longitude"
-              value={newAddress.longitude}
-              onChange={handleNewAddressChange}
-              required
-            />
-            <input
-              type="text"
-              name="formattedAddress"
-              placeholder="Formatted Address"
-              value={newAddress.formattedAddress}
-              onChange={handleNewAddressChange}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Address"}
-            </button>
-            {error && <p className="error">{error}</p>}
-          </form>
-        </div>
+      {onAddAddress && (
+        <button type="button" onClick={onAddAddress}>
+          Add New Address
+        </button>
       )}
     </div>
   );
-};
-
-AddressSelector.propTypes = {
-  onAddressSelect: PropTypes.func.isRequired,
-  onAddAddress: PropTypes.func, // Optional callback
 };
 
 export default AddressSelector;

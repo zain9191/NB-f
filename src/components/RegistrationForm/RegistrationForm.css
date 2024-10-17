@@ -1,0 +1,86 @@
+/* RegistrationForm.css */
+
+/* Container for the registration form */
+.registration-form {
+  max-width: 400px; /* Limit the width for better readability */
+  margin: 50px auto; /* Center the form horizontally with top margin */
+  padding: 30px;
+  background-color: #ffffff; /* White background for contrast */
+  border: 1px solid #ddd; /* Light border */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  box-sizing: border-box;
+}
+
+/* Form elements layout */
+.registration-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between form fields */
+}
+
+/* Input field styling */
+.registration-form input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* Focus state for inputs */
+.registration-form input:focus {
+  border-color: #007bff; /* Primary color on focus */
+  outline: none; /* Remove default outline */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Subtle glow */
+}
+
+/* Placeholder text color */
+.registration-form input::placeholder {
+  color: #aaa;
+}
+
+/* Error message styling */
+.registration-form .error {
+  color: #d9534f; /* Bootstrap's danger color */
+  font-size: 0.9rem;
+  margin-top: -15px; /* Slightly overlap with the input */
+  margin-bottom: 10px;
+}
+
+/* Submit button styling */
+.registration-form button[type="submit"] {
+  padding: 12px;
+  background-color: #28a745; /* Bootstrap's success color */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover state for submit button */
+.registration-form button[type="submit"]:hover {
+  background-color: #218838; /* Darker green on hover */
+}
+
+/* Disabled state for submit button */
+.registration-form button[type="submit"]:disabled {
+  background-color: #94d3a2; /* Lighter green */
+  cursor: not-allowed;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 500px) {
+  .registration-form {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .registration-form button[type="submit"] {
+    font-size: 1rem;
+  }
+}

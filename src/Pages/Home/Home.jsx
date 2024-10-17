@@ -1,18 +1,8 @@
-// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import homeBackground from "../../assets/imgs/Home-main.png";
 import "./Home.css";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import MealsList from "../../components/MealsList/MealsList";
-// import PlacesAutocomplete, {
-//   geocodeByAddress,
-//   getLatLng,
-// } from "react-places-autocomplete";
-// src/pages/Home/Home.jsx
-
-import UnifiedSearchBar from "../../components/UnifiedSearchBar/UnifiedSearchBar"; // Adjust the import path
-import "./Home.css";
+import UnifiedSearchBar from "../../components/UnifiedSearchBar/UnifiedSearchBar";
 
 const Home = () => {
   const [searchParams, setSearchParams] = useState({});
@@ -33,7 +23,6 @@ const Home = () => {
           <h1>Gourmet dishes created by talented local chefs</h1>
           <p>Discover nutritious, premium meals in your neighborhood.</p>
 
-          {/* Unified Search Bar */}
           <UnifiedSearchBar onSearch={handleSearch} />
         </div>
       </div>

@@ -1,466 +1,451 @@
-// File: src/components/MealForm/MealForm.jsx
-
-import React, { useState, useContext } from "react";
-import api from "../../utils/api"; // Import the centralized Axios instance
+// src/components/MealForm/MealForm.jsx
+import React, { useEffect, useContext, useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
-import AddressSelector from "../AddressSelector/AddressSelector"; // Adjust the path as necessary
+import NutritionalInfoForm from "../forms/NutritionalInfoForm";
+import ContactInfoForm from "../forms/ContactInfoForm";
+import AddressSelector from "../AddressSelector/AddressSelector";
+import { prepareMealData, isValidObjectId } from "../../utils/validationUtils";
+import api from "../../utils/api";
 
-// Optionally import CSS if available
-// import "./MealForm.css";
-
-/**
- * Utility function to split comma-separated strings into trimmed arrays.
- * @param {string} str - The comma-separated string.
- * @returns {Array} - The trimmed array.
- */
-const splitAndTrim = (str) =>
-  str
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => item);
-
-/**
- * MealForm Component
- * Allows users to create a new meal with comprehensive details.
- */
 const MealForm = () => {
+  const methods = useForm();
+  const { handleSubmit, register, setValue, watch, reset } = methods;
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { mealId } = useParams();
+  console.log("Meal ID:", mealId);
 
-  const initialMealData = {
-    name: "",
-    description: "",
-    price: "",
-    ingredients: "",
-    category: "",
-    cuisine: "",
-    portionSize: "",
-    nutritionalInfo: {
-      calories: "",
-      protein: "",
-      fat: "",
-      carbs: "",
-      vitamins: "",
-    },
-    dietaryRestrictions: "",
-    expirationDate: "",
-    pickupDeliveryOptions: "",
-    preparationDate: "",
-    packagingInformation: "",
-    healthSafetyCompliance: "",
-    contactInformation: {
-      email: "",
-      phone: "",
-    },
-    paymentOptions: "",
-    preparationMethod: "",
-    cookingInstructions: "",
-    additionalNotes: "",
-    tags: "",
-    sellerRating: "",
-    quantityAvailable: "",
-    discountsPromotions: "",
-    images: [],
-    addressId: "", // Added addressId
-  };
+  const [loading, setLoading] = useState(false);
+  const [authorizationChecked, setAuthorizationChecked] = useState(false);
 
-  const [mealData, setMealData] = useState(initialMealData);
+  const selectedAddressId = watch("addressId");
 
-  /**
-   * Handles changes for both top-level and nested fields in the form.
-   * @param {Object} e - The event object.
-   */
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setMealData((prevData) => {
-      const keys = name.split(".");
-      const lastKey = keys.pop();
-      const updatedData = { ...prevData };
+  useEffect(() => {
+    const fetchMeal = async () => {
+      if (mealId) {
+        setLoading(true);
+        try {
+          const response = await api.get(`/api/meals/${mealId}`);
+          if (response.success) {
+            const fetchedMeal = response.data;
 
-      let temp = updatedData;
-      keys.forEach((key) => {
-        if (!temp[key]) temp[key] = {};
-        temp = temp[key];
-      });
-      temp[lastKey] = value;
-      return updatedData;
-    });
-  };
+            // Check if the current user is the creator of the meal
+            const creatorId =
+              typeof fetchedMeal.createdBy === "object" &&
+              fetchedMeal.createdBy !== null
+                ? fetchedMeal.createdBy._id
+                : fetchedMeal.createdBy;
 
-  /**
-   * Handles image file selection.
-   * @param {Object} e - The event object.
-   */
-  const handleImageChange = (e) => {
-    setMealData({ ...mealData, images: e.target.files });
-  };
+            if (creatorId.toString() !== user._id.toString()) {
+              alert("You are not authorized to edit this meal.");
+              navigate("/profile");
+              return;
+            }
 
-  /**
-   * Prepares meal data for submission.
-   * @param {Object} data - The original meal data.
-   * @returns {Object} - The prepared meal data.
-   */
-  const prepareMealData = (data) => {
-    const { nutritionalInfo, contactInformation, ...rest } = data;
+            // Process fetchedMeal to match form fields
+            const processedMeal = {
+              ...fetchedMeal,
+              ingredients: Array.isArray(fetchedMeal.ingredients)
+                ? fetchedMeal.ingredients.join(", ")
+                : fetchedMeal.ingredients || "",
+              tags: Array.isArray(fetchedMeal.tags)
+                ? fetchedMeal.tags.join(", ")
+                : fetchedMeal.tags || "",
+              dietaryRestrictions: Array.isArray(
+                fetchedMeal.dietaryRestrictions
+              )
+                ? fetchedMeal.dietaryRestrictions.join(", ")
+                : fetchedMeal.dietaryRestrictions || "",
+              paymentOptions: Array.isArray(fetchedMeal.paymentOptions)
+                ? fetchedMeal.paymentOptions.join(", ")
+                : fetchedMeal.paymentOptions || "",
+              pickupDeliveryOptions: Array.isArray(
+                fetchedMeal.pickupDeliveryOptions
+              )
+                ? fetchedMeal.pickupDeliveryOptions.join(", ")
+                : fetchedMeal.pickupDeliveryOptions || "",
+              nutritionalInfo: {
+                calories: fetchedMeal.nutritionalInfo?.calories || "",
+                protein: fetchedMeal.nutritionalInfo?.protein || "",
+                fat: fetchedMeal.nutritionalInfo?.fat || "",
+                carbs: fetchedMeal.nutritionalInfo?.carbs || "",
+                vitamins: Array.isArray(fetchedMeal.nutritionalInfo?.vitamins)
+                  ? fetchedMeal.nutritionalInfo.vitamins.join(", ")
+                  : fetchedMeal.nutritionalInfo?.vitamins || "",
+              },
+              contactInformation: {
+                email: fetchedMeal.contactInformation?.email || "",
+                phone: fetchedMeal.contactInformation?.phone || "",
+              },
+              addressId: fetchedMeal.address?._id || "",
+              expirationDate: fetchedMeal.expirationDate
+                ? fetchedMeal.expirationDate.split("T")[0]
+                : "",
+              preparationDate: fetchedMeal.preparationDate
+                ? fetchedMeal.preparationDate.split("T")[0]
+                : "",
+            };
 
-    return {
-      ...rest,
-      ingredients: splitAndTrim(data.ingredients),
-      tags: splitAndTrim(data.tags),
-      dietaryRestrictions: splitAndTrim(data.dietaryRestrictions),
-      paymentOptions: splitAndTrim(data.paymentOptions),
-      nutritionalInfo: {
-        ...nutritionalInfo,
-        vitamins: splitAndTrim(nutritionalInfo.vitamins || ""),
-      },
-      contactInformation: { ...contactInformation },
-      // Removed the location object in favor of addressId
+            // Populate form with existing data
+            reset(processedMeal);
+            setAuthorizationChecked(true);
+          } else {
+            alert(response.msg || "Failed to fetch meal data.");
+            navigate("/profile");
+          }
+        } catch (error) {
+          console.error("Error fetching meal data:", error);
+          alert("Error fetching meal data.");
+          navigate("/profile");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // We are in create mode, reset form
+        reset();
+        setAuthorizationChecked(true);
+      }
     };
-  };
 
-  /**
-   * Handles form submission to create a new meal.
-   * @param {Object} e - The event object.
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (user) {
+      fetchMeal();
+    } else {
+      // If user is not logged in, redirect to login
+      alert("Please log in to create or edit a meal.");
+      navigate("/login");
+    }
+  }, [mealId, reset, navigate, user]);
 
-    // Validate that an address has been selected
-    if (!mealData.addressId) {
+  const onSubmit = async (data) => {
+    if (!data.addressId) {
       alert("Please select a valid address using the address selector.");
       return;
     }
 
-    // Prepare meal data to send
-    const mealDataToSend = prepareMealData(mealData);
-
-    // Initialize FormData
-    const formData = new FormData();
-
-    // Append simple fields
-    for (let key in mealDataToSend) {
-      if (key === "images" && mealData.images instanceof FileList) {
-        for (let i = 0; i < mealData.images.length; i++) {
-          formData.append("images", mealData.images[i]);
-        }
-      } else if (key === "nutritionalInfo" || key === "contactInformation") {
-        formData.append(key, JSON.stringify(mealDataToSend[key]));
-      } else {
-        formData.append(key, mealDataToSend[key]);
-      }
+    if (!isValidObjectId(data.addressId)) {
+      alert("Invalid Address ID.");
+      return;
     }
 
     try {
-      const response = await api.post("/api/meals", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Destructure to exclude unwanted fields
+      const {
+        createdAt,
+        updatedAt,
+        __v,
+        _id,
+        createdBy,
+        address,
+        ...validData // Contains all other fields except the destructured ones
+      } = prepareMealData(data);
 
-      if (response.data.success) {
-        alert("Meal created successfully");
-        // Optionally, reset the form or redirect the user
-        setMealData(initialMealData);
+      // Ensure numeric fields are parsed correctly
+      validData.price = parseFloat(validData.price) || 0;
+      validData.sellerRating = parseFloat(validData.sellerRating) || 0;
+      validData.quantityAvailable =
+        parseInt(validData.quantityAvailable, 10) || 0;
+
+      const formData = new FormData();
+
+      for (let key in validData) {
+        if (key === "images" && data.images instanceof FileList) {
+          Array.from(data.images).forEach((image) => {
+            formData.append("images", image);
+          });
+        } else if (["nutritionalInfo", "contactInformation"].includes(key)) {
+          formData.append(key, JSON.stringify(validData[key]));
+        } else if (["expirationDate", "preparationDate"].includes(key)) {
+          // Convert dates to ISO strings
+          formData.append(key, new Date(validData[key]).toISOString());
+        } else {
+          formData.append(key, validData[key].toString());
+        }
+      }
+
+      let response;
+      if (mealId) {
+        // Update existing meal
+        response = await api.put(`/api/meals/${mealId}`, formData);
       } else {
-        alert(response.data.msg || "Failed to create meal.");
+        // Create new meal
+        response = await api.post("/api/meals", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      }
+
+      // Handle the response based on Axios's default structure
+      if (response.success) {
+        alert(`Meal ${mealId ? "updated" : "created"} successfully`);
+        navigate("/profile");
+      } else {
+        alert(
+          response.data.msg || `Failed to ${mealId ? "update" : "create"} meal.`
+        );
       }
     } catch (error) {
-      console.error(
-        "Error creating meal",
-        error.response?.data || error.message
-      );
+      console.error(`Error ${mealId ? "updating" : "creating"} meal:`, error);
       alert(
-        "Error creating meal: " + (error.response?.data?.msg || error.message)
+        `Error ${mealId ? "updating" : "creating"} meal: ` +
+          (error.response?.data?.msg || error.message || error)
       );
     }
   };
 
-  if (!user) {
-    return <p>Please log in to create a meal.</p>;
+  if (loading || !authorizationChecked) {
+    return <p>Loading meal data...</p>;
   }
 
-  /**
-   * Handler to receive the selected addressId from AddressSelector
-   * @param {string} selectedAddressId - The selected address's _id
-   */
-  const handleAddressSelect = (selectedAddressId) => {
-    setMealData((prevData) => ({
-      ...prevData,
-      addressId: selectedAddressId,
-    }));
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="meal-form">
-      <h2>Create a Meal</h2>
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="meal-form">
+        <h2>{mealId ? "Edit Meal" : "Create a Meal"}</h2>
 
-      {/* Meal Details */}
-      <input
-        type="text"
-        name="name"
-        placeholder="Meal Name"
-        value={mealData.name}
-        onChange={handleChange}
-        required
-      />
-      <textarea
-        name="description"
-        placeholder="Description"
-        value={mealData.description}
-        onChange={handleChange}
-        required
-      ></textarea>
-      <input
-        type="number"
-        name="price"
-        placeholder="Price"
-        value={mealData.price}
-        onChange={handleChange}
-        required
-        min="0"
-        step="0.01"
-      />
-      <input
-        type="text"
-        name="ingredients"
-        placeholder="Ingredients (comma-separated)"
-        value={mealData.ingredients}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="category"
-        placeholder="Category"
-        value={mealData.category}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="cuisine"
-        placeholder="Cuisine"
-        value={mealData.cuisine}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="portionSize"
-        placeholder="Portion Size"
-        value={mealData.portionSize}
-        onChange={handleChange}
-        required
-      />
+        {/* Meal Name */}
+        <input
+          type="text"
+          {...register("name", { required: "Meal name is required" })}
+          placeholder="Meal Name"
+        />
+        {methods.formState.errors.name && (
+          <p className="error">{methods.formState.errors.name.message}</p>
+        )}
 
-      {/* Nutritional Information */}
-      <h3>Nutritional Information</h3>
-      <input
-        type="number"
-        name="nutritionalInfo.calories"
-        placeholder="Calories"
-        value={mealData.nutritionalInfo.calories}
-        onChange={handleChange}
-        required
-        min="0"
-      />
-      <input
-        type="number"
-        name="nutritionalInfo.protein"
-        placeholder="Protein (g)"
-        value={mealData.nutritionalInfo.protein}
-        onChange={handleChange}
-        required
-        min="0"
-        step="0.1"
-      />
-      <input
-        type="number"
-        name="nutritionalInfo.fat"
-        placeholder="Fat (g)"
-        value={mealData.nutritionalInfo.fat}
-        onChange={handleChange}
-        required
-        min="0"
-        step="0.1"
-      />
-      <input
-        type="number"
-        name="nutritionalInfo.carbs"
-        placeholder="Carbs (g)"
-        value={mealData.nutritionalInfo.carbs}
-        onChange={handleChange}
-        required
-        min="0"
-        step="0.1"
-      />
-      <input
-        type="text"
-        name="nutritionalInfo.vitamins"
-        placeholder="Vitamins (comma-separated)"
-        value={mealData.nutritionalInfo.vitamins}
-        onChange={handleChange}
-      />
+        {/* Description */}
+        <textarea
+          {...register("description", { required: "Description is required" })}
+          placeholder="Description"
+        ></textarea>
+        {methods.formState.errors.description && (
+          <p className="error">
+            {methods.formState.errors.description.message}
+          </p>
+        )}
 
-      {/* Dietary Restrictions */}
-      <input
-        type="text"
-        name="dietaryRestrictions"
-        placeholder="Dietary Restrictions (comma-separated)"
-        value={mealData.dietaryRestrictions}
-        onChange={handleChange}
-      />
+        {/* Price */}
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          {...register("price", { required: "Price is required" })}
+          placeholder="Price"
+        />
+        {methods.formState.errors.price && (
+          <p className="error">{methods.formState.errors.price.message}</p>
+        )}
 
-      {/* Dates */}
-      <input
-        type="date"
-        name="expirationDate"
-        placeholder="Expiration Date"
-        value={mealData.expirationDate}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="date"
-        name="preparationDate"
-        placeholder="Preparation Date"
-        value={mealData.preparationDate}
-        onChange={handleChange}
-        required
-      />
+        {/* Ingredients */}
+        <input
+          type="text"
+          {...register("ingredients", { required: "Ingredients are required" })}
+          placeholder="Ingredients (comma-separated)"
+        />
+        {methods.formState.errors.ingredients && (
+          <p className="error">
+            {methods.formState.errors.ingredients.message}
+          </p>
+        )}
 
-      {/* Pickup/Delivery Options */}
-      <input
-        type="text"
-        name="pickupDeliveryOptions"
-        placeholder="Pickup/Delivery Options"
-        value={mealData.pickupDeliveryOptions}
-        onChange={handleChange}
-        required
-      />
+        {/* Category */}
+        <input
+          type="text"
+          {...register("category", { required: "Category is required" })}
+          placeholder="Category"
+        />
+        {methods.formState.errors.category && (
+          <p className="error">{methods.formState.errors.category.message}</p>
+        )}
 
-      {/* Address Selection using AddressSelector */}
-      <h3>Address</h3>
-      <AddressSelector onAddressSelect={handleAddressSelect} />
-      {/* Display selected address details for confirmation */}
-      {mealData.addressId && (
-        <p>
-          <strong>Selected Address ID:</strong> {mealData.addressId}
-        </p>
-      )}
+        {/* Cuisine */}
+        <input
+          type="text"
+          {...register("cuisine", { required: "Cuisine is required" })}
+          placeholder="Cuisine"
+        />
+        {methods.formState.errors.cuisine && (
+          <p className="error">{methods.formState.errors.cuisine.message}</p>
+        )}
 
-      {/* Packaging and Compliance */}
-      <input
-        type="text"
-        name="packagingInformation"
-        placeholder="Packaging Information"
-        value={mealData.packagingInformation}
-        onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="healthSafetyCompliance"
-        placeholder="Health & Safety Compliance"
-        value={mealData.healthSafetyCompliance}
-        onChange={handleChange}
-      />
+        {/* Portion Size */}
+        <input
+          type="text"
+          {...register("portionSize", { required: "Portion size is required" })}
+          placeholder="Portion Size"
+        />
+        {methods.formState.errors.portionSize && (
+          <p className="error">
+            {methods.formState.errors.portionSize.message}
+          </p>
+        )}
 
-      {/* Contact Information */}
-      <h3>Contact Information</h3>
-      <input
-        type="email"
-        name="contactInformation.email"
-        placeholder="Contact Email"
-        value={mealData.contactInformation.email}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="tel"
-        name="contactInformation.phone"
-        placeholder="Contact Phone"
-        value={mealData.contactInformation.phone}
-        onChange={handleChange}
-        required
-        pattern="^[0-9]{10,15}$" // Adjust pattern as needed
-        title="Please enter a valid phone number."
-      />
+        {/* Nutritional Information */}
+        <NutritionalInfoForm />
 
-      {/* Payment and Additional Details */}
-      <input
-        type="text"
-        name="paymentOptions"
-        placeholder="Payment Options (comma-separated)"
-        value={mealData.paymentOptions}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="preparationMethod"
-        placeholder="Preparation Method"
-        value={mealData.preparationMethod}
-        onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="cookingInstructions"
-        placeholder="Cooking Instructions"
-        value={mealData.cookingInstructions}
-        onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="additionalNotes"
-        placeholder="Additional Notes"
-        value={mealData.additionalNotes}
-        onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="tags"
-        placeholder="Tags (comma-separated)"
-        value={mealData.tags}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="number"
-        name="sellerRating"
-        placeholder="Seller Rating (1-5)"
-        value={mealData.sellerRating}
-        onChange={handleChange}
-        min="1"
-        max="5"
-      />
-      <input
-        type="number"
-        name="quantityAvailable"
-        placeholder="Quantity Available"
-        value={mealData.quantityAvailable}
-        onChange={handleChange}
-        required
-        min="1"
-      />
-      <input
-        type="text"
-        name="discountsPromotions"
-        placeholder="Discounts/Promotions"
-        value={mealData.discountsPromotions}
-        onChange={handleChange}
-      />
+        {/* Dietary Restrictions */}
+        <input
+          type="text"
+          {...register("dietaryRestrictions")}
+          placeholder="Dietary Restrictions (comma-separated)"
+        />
 
-      {/* Image Upload */}
-      <input
-        type="file"
-        name="images"
-        multiple
-        onChange={handleImageChange}
-        accept="image/*"
-      />
+        {/* Expiration Date */}
+        <input
+          type="date"
+          {...register("expirationDate", {
+            required: "Expiration date is required",
+          })}
+          placeholder="Expiration Date"
+        />
+        {methods.formState.errors.expirationDate && (
+          <p className="error">
+            {methods.formState.errors.expirationDate.message}
+          </p>
+        )}
 
-      {/* Submit Button */}
-      <button type="submit">Create Meal</button>
-    </form>
+        {/* Preparation Date */}
+        <input
+          type="date"
+          {...register("preparationDate", {
+            required: "Preparation date is required",
+          })}
+          placeholder="Preparation Date"
+        />
+        {methods.formState.errors.preparationDate && (
+          <p className="error">
+            {methods.formState.errors.preparationDate.message}
+          </p>
+        )}
+
+        {/* Pickup/Delivery Options */}
+        <input
+          type="text"
+          {...register("pickupDeliveryOptions", {
+            required: "Pickup/Delivery options are required",
+          })}
+          placeholder="Pickup/Delivery Options"
+        />
+        {methods.formState.errors.pickupDeliveryOptions && (
+          <p className="error">
+            {methods.formState.errors.pickupDeliveryOptions.message}
+          </p>
+        )}
+
+        {/* Address Selector */}
+        <h3>Address</h3>
+        <AddressSelector
+          onAddressSelect={(id) => setValue("addressId", id)}
+          selectedAddressId={selectedAddressId}
+        />
+
+        {selectedAddressId && (
+          <p>
+            <strong>Selected Address ID:</strong> {selectedAddressId}
+          </p>
+        )}
+
+        {/* Packaging Information */}
+        <input
+          type="text"
+          {...register("packagingInformation")}
+          placeholder="Packaging Information"
+        />
+
+        {/* Health & Safety Compliance */}
+        <input
+          type="text"
+          {...register("healthSafetyCompliance")}
+          placeholder="Health & Safety Compliance"
+        />
+
+        {/* Contact Information */}
+        <ContactInfoForm />
+
+        {/* Payment Options */}
+        <input
+          type="text"
+          {...register("paymentOptions", {
+            required: "Payment options are required",
+          })}
+          placeholder="Payment Options (comma-separated)"
+        />
+        {methods.formState.errors.paymentOptions && (
+          <p className="error">
+            {methods.formState.errors.paymentOptions.message}
+          </p>
+        )}
+
+        {/* Preparation Method */}
+        <input
+          type="text"
+          {...register("preparationMethod")}
+          placeholder="Preparation Method"
+        />
+
+        {/* Cooking Instructions */}
+        <input
+          type="text"
+          {...register("cookingInstructions")}
+          placeholder="Cooking Instructions"
+        />
+
+        {/* Additional Notes */}
+        <input
+          type="text"
+          {...register("additionalNotes")}
+          placeholder="Additional Notes"
+        />
+
+        {/* Tags */}
+        <input
+          type="text"
+          {...register("tags", { required: "Tags are required" })}
+          placeholder="Tags (comma-separated)"
+        />
+        {methods.formState.errors.tags && (
+          <p className="error">{methods.formState.errors.tags.message}</p>
+        )}
+
+        {/* Seller Rating */}
+        <input
+          type="number"
+          min="1"
+          max="5"
+          {...register("sellerRating")}
+          placeholder="Seller Rating (1-5)"
+        />
+
+        {/* Quantity Available */}
+        <input
+          type="number"
+          min="1"
+          {...register("quantityAvailable", {
+            required: "Quantity is required",
+          })}
+          placeholder="Quantity Available"
+        />
+        {methods.formState.errors.quantityAvailable && (
+          <p className="error">
+            {methods.formState.errors.quantityAvailable.message}
+          </p>
+        )}
+
+        {/* Discounts/Promotions */}
+        <input
+          type="text"
+          {...register("discountsPromotions")}
+          placeholder="Discounts/Promotions"
+        />
+
+        {/* Images */}
+        <input type="file" {...register("images")} multiple accept="image/*" />
+
+        {/* Submit Button */}
+        <button type="submit">{mealId ? "Update Meal" : "Create Meal"}</button>
+      </form>
+    </FormProvider>
   );
 };
 

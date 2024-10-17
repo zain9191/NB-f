@@ -1,5 +1,3 @@
-// components/LoginForm.js
-
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
@@ -14,7 +12,7 @@ const LoginForm = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) {
-      setError(""); // Clear error when user starts typing
+      setError("");
     }
   };
 

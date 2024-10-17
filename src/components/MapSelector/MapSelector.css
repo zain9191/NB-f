@@ -1,0 +1,44 @@
+@import "~leaflet/dist/leaflet.css";
+/* src/components/MapSelector/MapSelector.css */
+
+.map-selector-container {
+    position: relative;
+    width: 100%;
+    height: 400px; /* Adjust height as needed */
+    margin-bottom: 1rem;
+    border: 2px solid #ccc; /* Optional: Add border around the map */
+    border-radius: 8px; /* Optional: Rounded corners */
+    overflow: hidden;
+  }
+  
+  .map-container {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .map-selector-container p {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.8);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    pointer-events: none; /* Allows clicks to pass through to the map */
+  }
+  
+  /* Optional: Customize Leaflet controls */
+  .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px 5px;
+  }
+  
+  /* Optional: Customize Marker */
+  .leaflet-marker-icon {
+    /* Example: Change marker size */
+    width: 25px;
+    height: 41px;
+  }
+  

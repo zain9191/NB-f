@@ -1,59 +1,137 @@
+/* UnifiedSearchBar.css */
 
+/* Container for the unified search form */
 .unified-search-form {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px; /* Adjust as needed */
+  margin: 20px auto; /* Center the form horizontally with vertical spacing */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Autocomplete container */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Input field styling */
+.autocomplete-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* Focus state for input */
+.autocomplete-input:focus {
+  border-color: #007bff; /* Primary color on focus */
+  outline: none; /* Remove default outline */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Subtle glow */
+}
+
+/* Placeholder text color */
+.autocomplete-input::placeholder {
+  color: #aaa;
+}
+
+/* Autocomplete dropdown styling */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%; /* Position below the input */
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-top: none; /* Remove double border with input */
+  max-height: 300px; /* Max height with scroll */
+  overflow-y: auto;
+  z-index: 10; /* Ensure dropdown appears above other elements */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 4px 4px;
+}
+
+/* Suggestion item styling */
+.suggestion-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover and active states for suggestion items */
+.suggestion-item:hover,
+.suggestion-item.active-custom {
+  background-color: #f0f0f0;
+}
+
+/* Loading indicator styling within dropdown */
+.autocomplete-dropdown > div {
+  padding: 10px 15px;
+  color: #555;
+}
+
+/* Search button styling */
+.search-button {
+  margin-left: 10px; /* Space between input and button */
+  padding: 12px 20px;
+  background-color: #28a745; /* Green background */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover state for search button */
+.search-button:hover {
+  background-color: #218838; /* Darker green on hover */
+}
+
+/* Disabled state for search button */
+.search-button:disabled {
+  background-color: #94d3a2; /* Lighter green */
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .unified-search-form {
+    flex-direction: column;
+    align-items: stretch;
   }
-  
-  .autocomplete-container {
-    position: relative;
-    width: 60%;
-  }
-  
-  .autocomplete-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-  }
-  
-  .autocomplete-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    border-top: none;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-  }
-  
-  .suggestion-item {
-    padding: 10px;
-    cursor: pointer;
-  }
-  
-  .suggestion-item:hover,
-  .suggestion-item.active-custom {
-    background-color: #f0f0f0;
-  }
-  
+
   .search-button {
-    padding: 10px 20px;
-    margin-left: 10px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
+    margin-left: 0;
+    margin-top: 10px;
   }
-  
-  .search-button:hover {
-    background-color: #45a049;
+
+  .autocomplete-dropdown {
+    max-height: 200px; /* Adjust for smaller screens */
   }
-  
+}
+
+@media (max-width: 480px) {
+  .unified-search-form {
+    padding: 5px;
+  }
+
+  .autocomplete-input {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .search-button {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+
+  .suggestion-item {
+    padding: 8px 12px;
+  }
+}

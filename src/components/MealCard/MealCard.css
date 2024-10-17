@@ -1,99 +1,170 @@
-/* Base meal card styling */
+/* MealCard.css */
+
+/* Main container for the meal card */
 .meal-card {
-  border: none; /* Remove border for a cleaner look */
-  border-radius: 12px; /* Rounded corners */
-  padding: 0; /* Remove padding */
-  text-align: left; /* Align text to left for a cleaner look */
-  width: 250px; /* Adjust width for better layout */
-  margin: 15px;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
   overflow: hidden;
-  background-color: #fff; /* Pure white background */
-  position: relative; /* For positioning child elements like the badge */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer shadow for modern look */
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  max-width: 400px;
+  margin: 20px auto;
 }
 
 .meal-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
-  transform: translateY(-3px); /* Slight hover lift effect */
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Top badge (optional) */
-.badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background-color: #f04e4e; /* Red color for the "Top Shef" badge */
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-  z-index: 1;
+/* Link styling when the card is clickable */
+.meal-card-link {
+  text-decoration: none;
+  color: inherit;
 }
 
-/* Image slider styling */
+/* Slider container */
 .meal-card-slider {
   width: 100%;
-  height: 180px; /* Adjust height for proper aspect ratio */
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px 12px 0 0; /* Top corners rounded */
+  height: 250px;
 }
 
 .meal-card-image {
   width: 100%;
-  height: 180px; /* Fixed height for consistent layout */
-  object-fit: cover; /* Ensure image covers the space properly */
-  transition: transform 0.3s ease;
+  height: 250px;
+  object-fit: cover;
 }
 
-.meal-card:hover .meal-card-image {
-  transform: scale(1.05); /* Slight zoom effect on hover */
-}
-
-/* Text styling inside the card */
+/* Content section */
 .meal-card h3 {
-  margin: 10px 0 6px 15px; /* Adjust margin for better spacing */
-  font-size: 16px; /* Adjusted font size */
-  color: #333; /* Darker text color for readability */
-  font-weight: bold; /* Bold title */
+  font-size: 1.5rem;
+  margin: 16px;
+  color: #333333;
 }
 
 .meal-card p {
-  margin: 4px 0 0 15px; /* Adjust margin for consistency */
-  font-size: 14px; /* Slightly smaller font */
-  color: #777; /* Gray color for less emphasis */
+  font-size: 1rem;
+  margin: 0 16px 8px 16px;
+  color: #555555;
 }
 
-.meal-card .rating {
-  margin-left: 15px; /* Align the rating with the text */
-  font-size: 14px;
-  color: #f4c150; /* Yellow color for the stars */
+/* Location styling */
+.meal-location {
+  font-size: 0.9rem;
+  margin: 0 16px 8px 16px;
+  color: #777777;
+}
+
+/* Nutritional Information */
+.meal-nutrition {
+  margin: 16px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.meal-nutrition h4 {
+  font-size: 1.1rem;
   margin-bottom: 8px;
+  color: #333333;
 }
 
-/* Add-to-cart button */
-.meal-card button {
-  background-color: #f04e4e; /* Red background color */
-  color: white;
-  border: none;
+.meal-nutrition p {
+  font-size: 0.95rem;
+  margin: 4px 0;
+  color: #555555;
+}
+
+/* Action Buttons Container */
+.meal-card-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+/* Buttons Styling */
+.meal-card-actions button {
   padding: 10px 16px;
-  border-radius: 8px; /* Rounded button */
-  font-size: 14px;
-  margin: 12px 15px;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  color: #ffffff;
 }
 
-.meal-card button:hover {
-  background-color: #d94343; /* Darker red on hover */
+.add-to-cart-button {
+  background-color: #28a745; /* Green */
 }
 
-/* Overall card layout */
-.meals-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px; /* Spacing between the cards */
+.add-to-cart-button:hover {
+  background-color: #218838;
+}
+
+.edit-meal-button {
+  background-color: #007bff; /* Blue */
+}
+
+.edit-meal-button:hover {
+  background-color: #0069d9;
+}
+
+.delete-meal-button {
+  background-color: #dc3545; /* Red */
+}
+
+.delete-meal-button:hover {
+  background-color: #c82333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .meal-card {
+    max-width: 90%;
+    margin: 20px auto;
+  }
+
+  .meal-card-slider,
+  .meal-card-image {
+    height: 200px;
+  }
+
+  .meal-card h3 {
+    font-size: 1.3rem;
+    margin: 12px;
+  }
+
+  .meal-card p {
+    font-size: 0.95rem;
+    margin: 0 12px 6px 12px;
+  }
+
+  .meal-nutrition h4 {
+    font-size: 1rem;
+  }
+
+  .meal-nutrition p {
+    font-size: 0.9rem;
+  }
+
+  .meal-card-actions button {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}
+.meal-card {
+  position: relative;
+}
+
+.meal-card-link {
+  display: block;
+ }
+
+.meal-card-actions {
+  position: relative;
+  z-index: 2; 
 }

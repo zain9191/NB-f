@@ -2,55 +2,40 @@
 import React, { createContext, useState, useEffect } from "react";
 import api from "../utils/api";
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // In src/contexts/AuthContext.jsx
+  const fetchProfile = async () => {
+    try {
+      const res = await api.get("/api/auth");
+      setUser(res.user);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const res = await api.get("/api/auth");
-          if (res.data && res.data._id) {
-            setUser(res.data);
-          } else {
-            console.log("No user data found in response:", res.data);
-            setUser(null);
-          }
-        } catch (err) {
-          console.error("Error fetching user:", err);
-          if (err.response && err.response.status === 401) {
-            // Token is invalid or expired
-            localStorage.removeItem("token");
-            setUser(null);
-          }
-        }
-      } else {
-        console.log("No token found in localStorage.");
-      }
-    };
-
-    fetchUser();
+    fetchProfile();
   }, []);
 
   const login = async (email, password) => {
     try {
-      const res = await api.post("/api/auth/login", {
-        email,
-        password,
-      });
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        setUser(res.data.user);
+      const res = await api.post("/api/auth/login", { email, password });
+      if (res.token) {
+        localStorage.setItem("token", res.token);
+        setUser(res.user);
       } else {
-        console.log("Login response missing token or user data:", res.data);
+        throw new Error(res.msg || "Login failed");
       }
-    } catch (err) {
-      console.error("Error during login:", err);
-      throw err;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
   };
 
@@ -61,10 +46,8 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export { AuthProvider, AuthContext };

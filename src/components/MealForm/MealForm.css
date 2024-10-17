@@ -1,16 +1,163 @@
-.autocomplete-dropdown-container {
-    position: absolute;
-    z-index: 1000;
-    width: 100%;
-    border: 1px solid #d9d9d9;
-    background-color: #fff;
+/* MealForm.css */
+
+/* Main container for the meal form */
+.meal-form {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Form Heading */
+.meal-form h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2rem;
+  color: #333333;
+}
+
+/* Form Elements */
+.meal-form input[type="text"],
+.meal-form input[type="number"],
+.meal-form input[type="date"],
+.meal-form input[type="file"],
+.meal-form textarea,
+.meal-form select {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 10px 0 20px 0;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+/* Textarea Specific Styling */
+.meal-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Focus States */
+.meal-form input[type="text"]:focus,
+.meal-form input[type="number"]:focus,
+.meal-form input[type="date"]:focus,
+.meal-form input[type="file"]:focus,
+.meal-form textarea:focus,
+.meal-form select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+/* Error Messages */
+.meal-form .error {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-top: -15px;
+  margin-bottom: 15px;
+}
+
+/* Submit Button */
+.meal-form button[type="submit"] {
+  width: 100%;
+  padding: 15px;
+  background-color: #3498db;
+  color: #ffffff;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.meal-form button[type="submit"]:hover {
+  background-color: #2980b9;
+}
+
+.meal-form button[type="submit"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+}
+
+/* Grouping Form Sections */
+.meal-form > div {
+  margin-bottom: 25px;
+}
+
+/* Section Headings */
+.meal-form h3 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  color: #555555;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+/* Address Selector Section */
+.meal-form .address-selector {
+  margin-top: 10px;
+}
+
+/* File Input Styling */
+.meal-form input[type="file"] {
+  padding: 5px 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .meal-form {
+    padding: 20px;
+    margin: 20px;
   }
-  
-  .suggestion-item {
-    padding: 10px;
-    cursor: pointer;
+
+  .meal-form h2 {
+    font-size: 1.8rem;
   }
-  
-  .suggestion-item--active {
-    background-color: #e6e6e6;
+
+  .meal-form h3 {
+    font-size: 1.3rem;
   }
+
+  .meal-form button[type="submit"] {
+    font-size: 1rem;
+    padding: 12px;
+  }
+}
+
+/* Additional Styling for Subcomponents (Optional) */
+/* If NutritionalInfoForm, ContactInfoForm, etc., have specific classes, style them accordingly */
+
+/* Example: NutritionalInfoForm */
+.meal-form .nutritional-info-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.meal-form .nutritional-info-form > div {
+  flex: 1 1 45%;
+}
+
+/* Example: ContactInfoForm */
+.meal-form .contact-info-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Example: Additional Notes Styling */
+.meal-form .additional-notes {
+  min-height: 80px;
+}
+
+/* File Input Label (Optional) */
+.meal-form .file-input-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333333;
+}

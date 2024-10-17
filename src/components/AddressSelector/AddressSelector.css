@@ -1,24 +1,96 @@
-/* File: src/components/AddressSelector/AddressSelector.css */
+/* AddressSelector.css */
 
+/* Container for the Address Selector */
 .address-selector {
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.address-selector:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Select Dropdown Styling */
+.address-selector select {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #333333;
+  background-color: #f9f9f9;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23999" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 6.646a.5.5 0 01.708 0L8 9.293l2.646-2.647a.5.5 0 01.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.address-selector select:focus {
+  border-color: #007BFF;
+  background-color: #ffffff;
+  outline: none;
+}
+
+/* Add Address Button Styling */
+.address-selector button {
+  padding: 12px 20px;
+  align-self: flex-end;
+  background-color: #28a745;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.address-selector button:hover {
+  background-color: #218838;
+}
+
+.address-selector button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.5);
+}
+
+/* Message Styling */
+.address-selector p {
+  font-size: 16px;
+  color: #555555;
+  margin-bottom: 15px;
+}
+
+.address-selector p.error {
+  color: #dc3545;
+}
+
+.address-selector p.loading {
+  color: #007BFF;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .address-selector {
+    padding: 15px;
+    margin: 10px;
   }
-  
-  .autocomplete-dropdown-container {
-    position: absolute;
-    z-index: 1000;
-    background: white;
-    border: 1px solid #ccc;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
+
+  .address-selector select,
+  .address-selector button {
+    font-size: 14px;
+    padding: 10px 16px;
   }
-  
-  .suggestion-item {
-    padding: 10px;
-  }
-  
-  .suggestion-item--active {
-    background-color: #fafafa;
-  }
-  
+}

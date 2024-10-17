@@ -1,6 +1,5 @@
-// src/components/FoodList.jsx
 import React, { useEffect, useState, useContext } from "react";
-import api from "../utils/api"; // Import the centralized Axios instance
+import api from "../utils/api";
 import { CartContext } from "../contexts/CartContext";
 
 const FoodList = () => {
@@ -11,7 +10,7 @@ const FoodList = () => {
     const fetchFoodItems = async () => {
       try {
         const response = await api.get("/api/meals");
-        setFoodItems(response.data);
+        setFoodItems(response);
       } catch (error) {
         console.error(error);
       }
